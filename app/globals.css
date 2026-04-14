@@ -1,4 +1,42 @@
 @import "tailwindcss";
+
+/* FullCalendar theme overrides */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-today-bg-color: oklch(0.97 0 0 / 50%);
+  --fc-neutral-bg-color: transparent;
+  --fc-page-bg-color: transparent;
+  --fc-now-indicator-color: oklch(0.577 0.245 27.325);
+}
+
+.dark .fc {
+  --fc-today-bg-color: oklch(0.269 0 0 / 30%);
+  color: oklch(0.985 0 0);
+}
+
+.fc .fc-button-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  opacity: 0.9;
+}
+
+.fc .fc-col-header-cell {
+  background-color: var(--muted);
+}
+
+.fc .fc-timegrid-slot {
+  height: 3em;
+}
+
+.fc-event {
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+}
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
