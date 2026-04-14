@@ -6,6 +6,10 @@ import type {
   StudentCourseEnrollment, LessonGradeSheet,
   MaintenanceItem, AircraftSquawk, WorkOrder, InstructorCurrency,
   AircraftPosition, MetarReport, WeatherWarning, Role,
+  StudentEndorsement, StageCheck, FlightLogTime, LineItemGrade,
+  TestGrade, PersonHold, Document, InfoReleaseAuthorization,
+  LessonOverride, NoShow, FifNotice, FifAcknowledgement,
+  StudentProgressForecast, TrainingRecordAuditException,
 } from "@/lib/types";
 import { addDays, addHours, format, subDays, startOfWeek } from "date-fns";
 
@@ -321,6 +325,105 @@ export const aircraftPositions: AircraftPosition[] = [
 // ── Weather Warnings ───────────────────────────────────
 export const weatherWarnings: WeatherWarning[] = [
   { id: "wx-01", type: "AIRMET", title: "AIRMET TANGO - Turbulence", description: "Moderate turbulence below 8000ft MSL due to low-level wind shear. Area from KDHN 30NM NW to 50NM NE.", severity: "moderate", expiresAt: iso(addHours(now, 4)) },
+];
+
+// ── Student Endorsements ───────────────────────────────
+export const studentEndorsements: StudentEndorsement[] = [
+  // Alex - has several endorsements (through Stage 2)
+  { id: "end-01", schoolId: IDS.school, studentUserId: IDS.studentAlex, templateId: null, renderedText: "I certify that I have given Alex Martinez the training required by 14 CFR 61.87(b) and find them competent to make solo flights.", issuedAt: "2025-11-01T09:00:00Z", issuedByUserId: IDS.instructorMike, category: "solo", expiresAt: "2026-11-01T00:00:00Z", aircraftContext: "Cessna 172S (N172SP)", sealed: true, revokedAt: null },
+  { id: "end-02", schoolId: IDS.school, studentUserId: IDS.studentAlex, templateId: null, renderedText: "I certify that Alex Martinez has received the required training of 14 CFR 61.93 and is competent for solo cross-country flight.", issuedAt: "2025-12-15T10:00:00Z", issuedByUserId: IDS.instructorMike, category: "xc", expiresAt: "2026-12-15T00:00:00Z", aircraftContext: "Cessna 172S (N172SP)", sealed: true, revokedAt: null },
+  { id: "end-03", schoolId: IDS.school, studentUserId: IDS.studentAlex, templateId: null, renderedText: "I certify that Alex Martinez has satisfactorily completed the aeronautical knowledge areas of 14 CFR 61.105 for Private Pilot.", issuedAt: "2026-01-20T14:00:00Z", issuedByUserId: IDS.instructorMike, category: "knowledge_test", expiresAt: null, aircraftContext: null, sealed: true, revokedAt: null },
+  // Emma - student pilot endorsement only
+  { id: "end-04", schoolId: IDS.school, studentUserId: IDS.studentEmma, templateId: null, renderedText: "I certify that Emma Johnson has received the training required by 14 CFR 61.87(b) for student pilot privileges.", issuedAt: "2026-01-15T14:00:00Z", issuedByUserId: IDS.instructorMike, category: "student_pilot", expiresAt: null, aircraftContext: null, sealed: true, revokedAt: null },
+];
+
+// ── Stage Checks ───────────────────────────────────────
+export const stageChecks: StageCheck[] = [
+  { id: "sc-01", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, stageId: IDS.stagePreflight, checkerUserId: IDS.instructorSarah, scheduledAt: "2025-11-01T08:00:00Z", conductedAt: "2025-11-01T08:00:00Z", status: "passed", remarks: "Excellent performance. Ready for solo.", sealed: true },
+  { id: "sc-02", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, stageId: IDS.stageSoloPrep, checkerUserId: IDS.instructorJames, scheduledAt: iso(addDays(now, 7)), conductedAt: null, status: "scheduled", remarks: null, sealed: false },
+  { id: "sc-03", schoolId: IDS.school, studentEnrollmentId: IDS.enrollOlivia, stageId: IDS.stagePreflight, checkerUserId: IDS.instructorSarah, scheduledAt: iso(addDays(now, 14)), conductedAt: null, status: "scheduled", remarks: null, sealed: false },
+];
+
+// ── Flight Log Time ────────────────────────────────────
+export const flightLogTimes: FlightLogTime[] = [
+  // Alex cumulative times
+  { id: "flt-01", schoolId: IDS.school, reservationId: null, userId: IDS.studentAlex, kind: "dual_received", dayMinutes: 1080, nightMinutes: 120, crossCountryMinutes: 360, instrumentActualMinutes: 0, instrumentSimulatedMinutes: 60, isSimulator: false, dayLandings: 85, nightLandings: 10, instrumentApproaches: 3 },
+  { id: "flt-02", schoolId: IDS.school, reservationId: null, userId: IDS.studentAlex, kind: "solo", dayMinutes: 420, nightMinutes: 0, crossCountryMinutes: 180, instrumentActualMinutes: 0, instrumentSimulatedMinutes: 0, isSimulator: false, dayLandings: 35, nightLandings: 0, instrumentApproaches: 0 },
+  // Emma
+  { id: "flt-03", schoolId: IDS.school, reservationId: null, userId: IDS.studentEmma, kind: "dual_received", dayMinutes: 240, nightMinutes: 0, crossCountryMinutes: 0, instrumentActualMinutes: 0, instrumentSimulatedMinutes: 0, isSimulator: false, dayLandings: 15, nightLandings: 0, instrumentApproaches: 0 },
+  // Olivia
+  { id: "flt-04", schoolId: IDS.school, reservationId: null, userId: IDS.studentOlivia, kind: "dual_received", dayMinutes: 480, nightMinutes: 0, crossCountryMinutes: 0, instrumentActualMinutes: 0, instrumentSimulatedMinutes: 0, isSimulator: false, dayLandings: 40, nightLandings: 0, instrumentApproaches: 0 },
+];
+
+// ── Line Item Grades ───────────────────────────────────
+export const lineItemGrades: LineItemGrade[] = [
+  // Grades for Alex's completed lessons (sample for intro lesson line items)
+  { id: "lig-01", gradeSheetId: gradeSheets[0]!.id, lineItemId: lineItems[0]!.id, gradeValue: "3", gradeRemarks: "Good cockpit familiarization", position: 1 },
+  { id: "lig-02", gradeSheetId: gradeSheets[0]!.id, lineItemId: lineItems[1]!.id, gradeValue: "3", gradeRemarks: "Understands four fundamentals", position: 2 },
+  { id: "lig-03", gradeSheetId: gradeSheets[0]!.id, lineItemId: lineItems[2]!.id, gradeValue: "2", gradeRemarks: "Needs more practice with trim", position: 3 },
+];
+
+// ── Test Grades ────────────────────────────────────────
+export const testGrades: TestGrade[] = [
+  { id: "tg-01", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, componentKind: "course", componentId: IDS.coursePPL, testKind: "knowledge", score: 88, maxScore: 100, remarks: "PAR score: Private Pilot Airplane", sealed: true, recordedAt: "2026-02-10T14:00:00Z", recordedByUserId: IDS.instructorMike },
+  { id: "tg-02", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, componentKind: "stage", componentId: IDS.stagePreflight, testKind: "oral", score: null, maxScore: null, remarks: "Satisfactory oral on Stage 1 areas", sealed: true, recordedAt: "2025-11-01T08:00:00Z", recordedByUserId: IDS.instructorSarah },
+];
+
+// ── Person Holds ───────────────────────────────────────
+export const personHolds: PersonHold[] = [
+  { id: "ph-01", schoolId: IDS.school, userId: IDS.studentNoah, kind: "hold", reason: "Medical certificate expired - awaiting renewal documentation", createdByUserId: IDS.adminLisa, createdAt: iso(subDays(now, 5)), clearedAt: null, clearedByUserId: null, clearedReason: null },
+];
+
+// ── Documents ──────────────────────────────────────────
+export const documents: Document[] = [
+  { id: "doc-01", schoolId: IDS.school, userId: IDS.studentAlex, kind: "medical", storagePath: "/docs/alex-medical-3rd.pdf", mimeType: "application/pdf", byteSize: 245000, expiresAt: "2027-05-31T00:00:00Z", uploadedAt: "2025-09-20T10:00:00Z", uploadedByUserId: IDS.studentAlex },
+  { id: "doc-02", schoolId: IDS.school, userId: IDS.studentAlex, kind: "government_id", storagePath: "/docs/alex-id.jpg", mimeType: "image/jpeg", byteSize: 1200000, expiresAt: "2028-03-12T00:00:00Z", uploadedAt: "2025-09-15T09:00:00Z", uploadedByUserId: IDS.studentAlex },
+  { id: "doc-03", schoolId: IDS.school, userId: IDS.studentEmma, kind: "medical", storagePath: "/docs/emma-medical-3rd.pdf", mimeType: "application/pdf", byteSize: 198000, expiresAt: "2027-01-31T00:00:00Z", uploadedAt: "2026-01-10T11:00:00Z", uploadedByUserId: IDS.studentEmma },
+  { id: "doc-04", schoolId: IDS.school, userId: IDS.studentOlivia, kind: "medical", storagePath: "/docs/olivia-medical-3rd.pdf", mimeType: "application/pdf", byteSize: 210000, expiresAt: "2026-12-31T00:00:00Z", uploadedAt: "2025-11-20T09:00:00Z", uploadedByUserId: IDS.studentOlivia },
+  { id: "doc-05", schoolId: IDS.school, userId: IDS.studentOlivia, kind: "pilot_license", storagePath: "/docs/olivia-student-cert.pdf", mimeType: "application/pdf", byteSize: 156000, expiresAt: null, uploadedAt: "2025-11-22T10:00:00Z", uploadedByUserId: IDS.studentOlivia },
+];
+
+// ── Info Release Authorizations ────────────────────────
+export const infoReleaseAuthorizations: InfoReleaseAuthorization[] = [
+  { id: "ira-01", schoolId: IDS.school, userId: IDS.studentAlex, name: "Maria Martinez", relationship: "Mother", grantedAt: "2025-09-15T00:00:00Z", revokedAt: null, notes: "Can receive all training progress updates" },
+  { id: "ira-02", schoolId: IDS.school, userId: IDS.studentEmma, name: "Robert Johnson", relationship: "Father", grantedAt: "2026-01-10T00:00:00Z", revokedAt: null, notes: "Billing and progress inquiries" },
+];
+
+// ── Lesson Overrides ───────────────────────────────────
+export const lessonOverrides: LessonOverride[] = [
+  { id: "lo-01", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, lessonId: lessons[12]!.id, kind: "prerequisite_skip", justification: "Student demonstrated XC planning competency in ground school; skipping redundant lesson.", grantedAt: "2026-03-01T10:00:00Z", grantedByUserId: IDS.instructorMike, expiresAt: "2026-03-31T00:00:00Z", consumedAt: null, revokedAt: null },
+];
+
+// ── No-Shows ───────────────────────────────────────────
+export const noShows: NoShow[] = [
+  { id: "ns-01", schoolId: IDS.school, userId: IDS.studentNoah, scheduledAt: iso(subDays(now, 12)), aircraftId: IDS.aircraftN28PA, instructorId: IDS.instructorMike, recordedByUserId: IDS.instructorMike, recordedAt: iso(subDays(now, 12)), reason: "No contact - did not show for scheduled flight" },
+  { id: "ns-02", schoolId: IDS.school, userId: IDS.studentEmma, scheduledAt: iso(subDays(now, 45)), aircraftId: IDS.aircraftN172SP, instructorId: IDS.instructorMike, recordedByUserId: IDS.instructorMike, recordedAt: iso(subDays(now, 45)), reason: "Called 10 min before - car trouble" },
+];
+
+// ── FIF Notices ────────────────────────────────────────
+export const fifNotices: FifNotice[] = [
+  { id: "fif-01", schoolId: IDS.school, baseId: IDS.base, title: "Runway 14/32 NOTAM - Displaced Threshold", body: "Effective immediately: Runway 14 threshold displaced 500ft for construction. Expect reduced landing distance available. Use caution during approach. Construction estimated through May 2026.", severity: "important", postedAt: iso(subDays(now, 2)), postedByUserId: IDS.adminLisa, effectiveAt: iso(subDays(now, 2)), expiresAt: iso(addDays(now, 45)) },
+  { id: "fif-02", schoolId: IDS.school, baseId: IDS.base, title: "Bird Activity Advisory", body: "Increased bird activity reported in the vicinity of KDHN, particularly during morning and evening hours. Exercise caution during takeoff and landing. Report any bird strikes immediately.", severity: "info", postedAt: iso(subDays(now, 1)), postedByUserId: IDS.instructorJames, effectiveAt: iso(subDays(now, 1)), expiresAt: iso(addDays(now, 14)) },
+  { id: "fif-03", schoolId: IDS.school, baseId: IDS.base, title: "Temporary Flight Restriction - Military Exercise", body: "TFR active R-2907 complex (Ft Novosel). Altitude: SFC-15000 MSL. Contact Cairns Approach for transition. Active daily 0800-2200L through end of month.", severity: "critical", postedAt: iso(subDays(now, 0)), postedByUserId: IDS.adminLisa, effectiveAt: iso(subDays(now, 0)), expiresAt: iso(addDays(now, 30)) },
+];
+
+export const fifAcknowledgements: FifAcknowledgement[] = [
+  { id: "fif-ack-01", noticeId: "fif-01", userId: IDS.instructorMike, acknowledgedAt: iso(subDays(now, 1)) },
+  { id: "fif-ack-02", noticeId: "fif-02", userId: IDS.instructorMike, acknowledgedAt: iso(subDays(now, 0)) },
+  // fif-03 (TFR) NOT acknowledged by Mike yet
+];
+
+// ── Progress Forecasts ─────────────────────────────────
+export const progressForecasts: StudentProgressForecast[] = [
+  { studentEnrollmentId: IDS.enrollAlex, computedAt: iso(subDays(now, 1)), expectedHoursToDate: 28.0, actualHoursToDate: 25.0, aheadBehindHours: -3.0, aheadBehindWeeks: -0.75, remainingHours: 15.0, projectedCheckrideDate: "2026-07-15", projectedCompletionDate: "2026-07-20", confidence: "high" },
+  { studentEnrollmentId: IDS.enrollEmma, computedAt: iso(subDays(now, 1)), expectedHoursToDate: 8.0, actualHoursToDate: 4.0, aheadBehindHours: -4.0, aheadBehindWeeks: -1.0, remainingHours: 36.0, projectedCheckrideDate: "2026-11-01", projectedCompletionDate: "2026-11-15", confidence: "medium" },
+  { studentEnrollmentId: IDS.enrollOlivia, computedAt: iso(subDays(now, 1)), expectedHoursToDate: 16.0, actualHoursToDate: 8.0, aheadBehindHours: -8.0, aheadBehindWeeks: -2.0, remainingHours: 32.0, projectedCheckrideDate: "2026-10-01", projectedCompletionDate: "2026-10-15", confidence: "low" },
+];
+
+// ── Training Record Audit Exceptions ───────────────────
+export const auditExceptions: TrainingRecordAuditException[] = [
+  { id: "ae-01", schoolId: IDS.school, studentEnrollmentId: IDS.enrollOlivia, kind: "hours_deficit", severity: "warn", details: { expectedHours: 16, actualHours: 8, deficit: 8 }, firstDetectedAt: iso(subDays(now, 7)), lastDetectedAt: iso(subDays(now, 1)), resolvedAt: null },
+  { id: "ae-02", schoolId: IDS.school, studentEnrollmentId: IDS.enrollAlex, kind: "expired_overrides", severity: "info", details: { overrideId: "lo-01", lessonCode: "L-3.1", expiresAt: "2026-03-31" }, firstDetectedAt: iso(subDays(now, 3)), lastDetectedAt: iso(subDays(now, 1)), resolvedAt: null },
 ];
 
 // ── Helper: Auth lookup ────────────────────────────────

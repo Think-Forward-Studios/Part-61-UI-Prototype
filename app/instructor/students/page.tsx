@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { getInstructorStudents, users } from "@/lib/mock-data";
+import { getInstructorStudents, users, personHolds, noShows } from "@/lib/mock-data";
 import { IDS } from "@/lib/mock-data/ids";
 import { useAuth } from "@/lib/auth-context";
 import { format } from "date-fns";
@@ -81,12 +81,19 @@ export default function StudentsPage() {
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">No students found</TableCell>
               </TableRow>
             )}
-            {filtered.map(s => (
+            {filtered.map(s => {
+              const hasHold = personHolds.some(h => h.userId === s.user.id && !h.clearedAt);
+              const noShowCount = noShows.filter(n => n.userId === s.user.id).length;
+              return (
               <TableRow key={s.user.id} className="cursor-pointer hover:bg-muted/50">
                 <TableCell>
-                  <Link href={`/instructor/students/${s.user.id}`} className="font-medium hover:underline">
-                    {s.user.fullName}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/instructor/students/${s.user.id}`} className="font-medium hover:underline">
+                      {s.user.fullName}
+                    </Link>
+                    {hasHold && <Badge variant="destructive" className="text-[10px]">HOLD</Badge>}
+                    {noShowCount > 0 && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-400">{noShowCount} NS</Badge>}
+                  </div>
                   <p className="text-xs text-muted-foreground">{s.user.email}</p>
                 </TableCell>
                 <TableCell>
@@ -108,7 +115,7 @@ export default function StudentsPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            );})}
           </TableBody>
         </Table>
       </div>

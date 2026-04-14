@@ -288,6 +288,229 @@ export interface InstructorCurrency {
   expiresAt: string | null;
 }
 
+// ── Endorsements ───────────────────────────────────────
+
+export type EndorsementCategory = "student_pilot" | "solo" | "xc" | "aircraft_class_rating" | "flight_review" | "ipc" | "practical_test" | "knowledge_test" | "other";
+
+export interface StudentEndorsement {
+  id: string;
+  schoolId: string;
+  studentUserId: string;
+  templateId: string | null;
+  renderedText: string;
+  issuedAt: string;
+  issuedByUserId: string | null;
+  category: EndorsementCategory;
+  expiresAt: string | null;
+  aircraftContext: string | null;
+  sealed: boolean;
+  revokedAt: string | null;
+}
+
+// ── Stage Checks ───────────────────────────────────────
+
+export type StageCheckStatus = "scheduled" | "passed" | "failed";
+
+export interface StageCheck {
+  id: string;
+  schoolId: string;
+  studentEnrollmentId: string;
+  stageId: string;
+  checkerUserId: string;
+  scheduledAt: string | null;
+  conductedAt: string | null;
+  status: StageCheckStatus;
+  remarks: string | null;
+  sealed: boolean;
+}
+
+// ── Flight Log Time ────────────────────────────────────
+
+export type FlightLogTimeKind = "dual_received" | "dual_given" | "pic" | "sic" | "solo";
+
+export interface FlightLogTime {
+  id: string;
+  schoolId: string;
+  reservationId: string | null;
+  userId: string;
+  kind: FlightLogTimeKind;
+  dayMinutes: number;
+  nightMinutes: number;
+  crossCountryMinutes: number;
+  instrumentActualMinutes: number;
+  instrumentSimulatedMinutes: number;
+  isSimulator: boolean;
+  dayLandings: number;
+  nightLandings: number;
+  instrumentApproaches: number;
+}
+
+// ── Line Item Grades ───────────────────────────────────
+
+export interface LineItemGrade {
+  id: string;
+  gradeSheetId: string;
+  lineItemId: string;
+  gradeValue: string;
+  gradeRemarks: string | null;
+  position: number;
+}
+
+// ── Test Grades ────────────────────────────────────────
+
+export type TestComponentKind = "course" | "stage" | "course_phase" | "unit" | "lesson" | "line_item";
+export type TestKind = "knowledge" | "oral" | "end_of_stage" | "practical";
+
+export interface TestGrade {
+  id: string;
+  schoolId: string;
+  studentEnrollmentId: string;
+  componentKind: TestComponentKind;
+  componentId: string;
+  testKind: TestKind;
+  score: number | null;
+  maxScore: number | null;
+  remarks: string | null;
+  sealed: boolean;
+  recordedAt: string;
+  recordedByUserId: string;
+}
+
+// ── Person Holds ───────────────────────────────────────
+
+export type HoldKind = "hold" | "grounding";
+
+export interface PersonHold {
+  id: string;
+  schoolId: string;
+  userId: string;
+  kind: HoldKind;
+  reason: string;
+  createdByUserId: string;
+  createdAt: string;
+  clearedAt: string | null;
+  clearedByUserId: string | null;
+  clearedReason: string | null;
+}
+
+// ── Documents ──────────────────────────────────────────
+
+export type DocumentKind = "medical" | "pilot_license" | "government_id" | "insurance" | "aircraft_photo";
+
+export interface Document {
+  id: string;
+  schoolId: string;
+  userId: string;
+  kind: DocumentKind;
+  storagePath: string;
+  mimeType: string | null;
+  byteSize: number | null;
+  expiresAt: string | null;
+  uploadedAt: string;
+  uploadedByUserId: string;
+}
+
+// ── Info Release Authorization ─────────────────────────
+
+export interface InfoReleaseAuthorization {
+  id: string;
+  schoolId: string;
+  userId: string;
+  name: string;
+  relationship: string;
+  grantedAt: string;
+  revokedAt: string | null;
+  notes: string | null;
+}
+
+// ── Lesson Override ────────────────────────────────────
+
+export type LessonOverrideKind = "prerequisite_skip" | "repeat_limit_exceeded" | "currency_waiver";
+
+export interface LessonOverride {
+  id: string;
+  schoolId: string;
+  studentEnrollmentId: string;
+  lessonId: string;
+  kind: LessonOverrideKind;
+  justification: string;
+  grantedAt: string;
+  grantedByUserId: string;
+  expiresAt: string;
+  consumedAt: string | null;
+  revokedAt: string | null;
+}
+
+// ── No-Show ────────────────────────────────────────────
+
+export interface NoShow {
+  id: string;
+  schoolId: string;
+  userId: string;
+  scheduledAt: string;
+  aircraftId: string | null;
+  instructorId: string | null;
+  recordedByUserId: string;
+  recordedAt: string;
+  reason: string | null;
+}
+
+// ── FIF Notice ─────────────────────────────────────────
+
+export type FifSeverity = "info" | "important" | "critical";
+
+export interface FifNotice {
+  id: string;
+  schoolId: string;
+  baseId: string | null;
+  title: string;
+  body: string;
+  severity: FifSeverity;
+  postedAt: string;
+  postedByUserId: string;
+  effectiveAt: string | null;
+  expiresAt: string | null;
+}
+
+export interface FifAcknowledgement {
+  id: string;
+  noticeId: string;
+  userId: string;
+  acknowledgedAt: string;
+}
+
+// ── Progress Forecast ──────────────────────────────────
+
+export interface StudentProgressForecast {
+  studentEnrollmentId: string;
+  computedAt: string;
+  expectedHoursToDate: number;
+  actualHoursToDate: number;
+  aheadBehindHours: number;
+  aheadBehindWeeks: number;
+  remainingHours: number;
+  projectedCheckrideDate: string | null;
+  projectedCompletionDate: string | null;
+  confidence: string;
+}
+
+// ── Training Record Audit Exception ────────────────────
+
+export type AuditExceptionKind = "missing_lessons" | "hours_deficit" | "missing_endorsements" | "missing_stage_checks" | "stale_rollovers" | "expired_overrides";
+export type AuditExceptionSeverity = "info" | "warn" | "critical";
+
+export interface TrainingRecordAuditException {
+  id: string;
+  schoolId: string;
+  studentEnrollmentId: string;
+  kind: AuditExceptionKind;
+  severity: AuditExceptionSeverity;
+  details: Record<string, unknown>;
+  firstDetectedAt: string;
+  lastDetectedAt: string;
+  resolvedAt: string | null;
+}
+
 // ── Map / Weather ──────────────────────────────────────
 
 export interface AircraftPosition {
