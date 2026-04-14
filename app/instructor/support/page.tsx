@@ -79,11 +79,11 @@ export default function SupportPage() {
             </div>
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>support@alphaflight.test</span>
+              <span>support@tfsflightschool.test</span>
             </div>
             <div className="flex items-center gap-3">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>Austin Executive Airport (KAUS)<br />Austin, TX 78719</span>
+              <span>Dothan Regional Airport (KDHN)<br />Dothan, AL 36303</span>
             </div>
             <div className="pt-2 text-xs text-muted-foreground">
               <p>Office Hours: Mon-Fri 7:00 AM - 6:00 PM CST</p>

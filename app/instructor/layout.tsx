@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Users, CalendarDays, Map, Wrench, HelpCircle, Plane, LogOut, User, Clock, FileText, Lock, Settings } from "lucide-react";
+import { Calendar, Users, CalendarDays, Map, Wrench, HelpCircle, LogOut, User, Clock, FileText, Lock, Settings } from "lucide-react";
+import { TFSBadge } from "@/components/tfs-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -32,14 +33,12 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
         <div className="flex items-center h-14 px-4 gap-4">
           {/* Logo */}
           <Link href="/instructor/schedule" className="flex items-center gap-2 shrink-0">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <Plane className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-sm hidden sm:inline">Alpha Flight Academy</span>
+            <TFSBadge size={32} />
+            <span className="font-semibold text-sm hidden sm:inline">TFS Flight School</span>
           </Link>
 
           {/* Tab Navigation */}
-          <nav className="flex-1 flex items-center justify-center gap-1">
+          <nav className="flex-1 flex items-center justify-center gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide">
             {tabs.map(tab => {
               const isActive = pathname.startsWith(tab.href);
               return (
@@ -47,14 +46,14 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                    "flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors shrink-0",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
                 >
                   <tab.icon className="h-4 w-4" />
-                  <span className="hidden md:inline">{tab.label}</span>
+                  <span className="hidden lg:inline">{tab.label}</span>
                 </Link>
               );
             })}

@@ -22,11 +22,11 @@ const categoryColors: Record<string, string> = {
 
 export default function LiveMapPage() {
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
-  const [expandedMetar, setExpandedMetar] = useState<string>("KAUS");
+  const [expandedMetar, setExpandedMetar] = useState<string>("KDHN");
 
   const flyingAircraft = aircraftPositions.filter(a => a.isSchoolAircraft && a.altitudeFt > 0);
-  const baseMetar = metarReports.find(m => m.station === "KAUS")!;
-  const nearbyMetars = metarReports.filter(m => m.station !== "KAUS");
+  const baseMetar = metarReports.find(m => m.station === "KDHN")!;
+  const nearbyMetars = metarReports.filter(m => m.station !== "KDHN");
 
   const handleRecenter = useCallback(() => {
     setCenterOn([base.longitude, base.latitude]);
@@ -37,9 +37,9 @@ export default function LiveMapPage() {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)]">
-      {/* Left Sidebar */}
-      <div className="w-80 border-r flex flex-col shrink-0">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)]">
+      {/* Left Sidebar — collapses to horizontal strip on mobile */}
+      <div className="w-full md:w-80 border-b md:border-b-0 md:border-r flex flex-col shrink-0 max-h-48 md:max-h-none overflow-y-auto">
         <ScrollArea className="flex-1">
           <div className="p-3 space-y-4">
             {/* METAR - Base */}

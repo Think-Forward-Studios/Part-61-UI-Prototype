@@ -10,7 +10,7 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Alpha Flight Academy",
+  title: "TFS Flight School",
   description: "Part 61 Flight School Management System",
 };
 

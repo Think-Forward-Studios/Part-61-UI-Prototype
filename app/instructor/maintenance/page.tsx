@@ -87,7 +87,7 @@ export default function MaintenancePage() {
 
         {/* Due / Overdue Items */}
         <TabsContent value="items">
-          <div className="rounded-lg border">
+          <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -126,7 +126,7 @@ export default function MaintenancePage() {
 
         {/* Squawks */}
         <TabsContent value="squawks">
-          <div className="rounded-lg border">
+          <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -176,7 +176,7 @@ export default function MaintenancePage() {
 
         {/* Work Orders */}
         <TabsContent value="workorders">
-          <div className="rounded-lg border">
+          <div className="rounded-lg border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

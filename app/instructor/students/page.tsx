@@ -40,9 +40,9 @@ export default function StudentsPage() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Students</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Select value={statusFilter} onValueChange={v => v && setStatusFilter(v)}>
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -64,8 +64,8 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border">
-        <Table>
+      <div className="rounded-lg border overflow-x-auto">
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
               <TableHead>Student</TableHead>

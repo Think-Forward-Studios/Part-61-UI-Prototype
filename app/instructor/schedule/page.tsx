@@ -50,23 +50,23 @@ export default function SchedulePage() {
   return (
     <div className="p-4 space-y-4">
       {/* Action Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">My Schedule</h2>
-        <div className="flex gap-2">
-          <Button onClick={() => setAddTrainingOpen(true)}>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" onClick={() => setAddTrainingOpen(true)}>
             <Plus className="h-4 w-4 mr-1" />Add Training
           </Button>
-          <Button variant="outline" onClick={() => setBlockoutOpen(true)}>
+          <Button size="sm" variant="outline" onClick={() => setBlockoutOpen(true)}>
             <Clock className="h-4 w-4 mr-1" />Blockout Time
           </Button>
-          <Button variant="outline">
+          <Button size="sm" variant="outline">
             <CalendarCheck className="h-4 w-4 mr-1" />Set Availability
           </Button>
         </div>
       </div>
 
       {/* Calendar */}
-      <div className="bg-card rounded-lg border p-4">
+      <div className="bg-card rounded-lg border p-2 sm:p-4 overflow-x-auto">
         <InstructorCalendar
           events={events}
           onEventClick={(info) => {

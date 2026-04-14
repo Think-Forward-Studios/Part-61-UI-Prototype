@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import { TFSBadge } from "@/components/tfs-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,11 +40,9 @@ export default function GatePage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-3">
-            <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-              <Plane className="h-7 w-7 text-primary-foreground" />
-            </div>
+            <TFSBadge size={56} />
           </div>
-          <CardTitle>Alpha Flight Academy</CardTitle>
+          <CardTitle>TFS Flight School</CardTitle>
           <CardDescription>Enter the team password to access the prototype</CardDescription>
         </CardHeader>
         <CardContent>

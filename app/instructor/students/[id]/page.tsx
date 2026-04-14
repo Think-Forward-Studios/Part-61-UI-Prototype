@@ -43,7 +43,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link href="/instructor/students">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
@@ -53,7 +53,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm"><Calendar className="h-4 w-4 mr-1" />Schedule Training</Button>
           <Button variant="outline" size="sm"><UserCog className="h-4 w-4 mr-1" />Change Instructor</Button>
           <Button variant="outline" size="sm"><BookOpen className="h-4 w-4 mr-1" />Change Syllabus</Button>

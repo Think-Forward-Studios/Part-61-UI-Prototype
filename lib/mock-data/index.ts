@@ -31,27 +31,27 @@ const gsId = () => `GGGGGG00-gs-00000001-0001-${String(++gsSeq).padStart(12, "0"
 
 // ── School & Base ──────────────────────────────────────
 export const school: School = {
-  id: IDS.school, name: "Alpha Flight Academy", timezone: "America/Chicago", createdAt: "2024-01-15T00:00:00Z",
+  id: IDS.school, name: "TFS Flight School", timezone: "America/Chicago", createdAt: "2024-01-15T00:00:00Z",
 };
 
 export const base: Base = {
-  id: IDS.base, schoolId: IDS.school, name: "Austin Executive (KAUS)", timezone: null,
-  latitude: 30.1945, longitude: -97.6699,
+  id: IDS.base, schoolId: IDS.school, name: "Dothan Regional (KDHN)", timezone: null,
+  latitude: 31.3213, longitude: -85.4496,
 };
 
 // ── Users ──────────────────────────────────────────────
 export const users: User[] = [
-  { id: IDS.instructorMike, schoolId: IDS.school, email: "instructor@alpha.test", fullName: "Mike Reynolds", timezone: null, status: "active" },
-  { id: IDS.instructorSarah, schoolId: IDS.school, email: "sarah.chen@alpha.test", fullName: "Sarah Chen", timezone: null, status: "active" },
-  { id: IDS.instructorJames, schoolId: IDS.school, email: "james.wright@alpha.test", fullName: "James Wright", timezone: null, status: "active" },
-  { id: IDS.studentAlex, schoolId: IDS.school, email: "student@alpha.test", fullName: "Alex Martinez", timezone: null, status: "active" },
-  { id: IDS.studentEmma, schoolId: IDS.school, email: "emma.johnson@alpha.test", fullName: "Emma Johnson", timezone: null, status: "active" },
-  { id: IDS.studentLiam, schoolId: IDS.school, email: "liam.williams@alpha.test", fullName: "Liam Williams", timezone: null, status: "active" },
-  { id: IDS.studentOlivia, schoolId: IDS.school, email: "olivia.brown@alpha.test", fullName: "Olivia Brown", timezone: null, status: "active" },
-  { id: IDS.studentNoah, schoolId: IDS.school, email: "noah.davis@alpha.test", fullName: "Noah Davis", timezone: null, status: "active" },
-  { id: IDS.studentAva, schoolId: IDS.school, email: "ava.wilson@alpha.test", fullName: "Ava Wilson", timezone: null, status: "inactive" },
-  { id: IDS.mechanicDan, schoolId: IDS.school, email: "dan.garcia@alpha.test", fullName: "Dan Garcia", timezone: null, status: "active" },
-  { id: IDS.adminLisa, schoolId: IDS.school, email: "admin@alpha.test", fullName: "Lisa Park", timezone: null, status: "active" },
+  { id: IDS.instructorMike, schoolId: IDS.school, email: "instructor@tfs.test", fullName: "Mike Reynolds", timezone: null, status: "active" },
+  { id: IDS.instructorSarah, schoolId: IDS.school, email: "sarah.chen@tfs.test", fullName: "Sarah Chen", timezone: null, status: "active" },
+  { id: IDS.instructorJames, schoolId: IDS.school, email: "james.wright@tfs.test", fullName: "James Wright", timezone: null, status: "active" },
+  { id: IDS.studentAlex, schoolId: IDS.school, email: "student@tfs.test", fullName: "Alex Martinez", timezone: null, status: "active" },
+  { id: IDS.studentEmma, schoolId: IDS.school, email: "emma.johnson@tfs.test", fullName: "Emma Johnson", timezone: null, status: "active" },
+  { id: IDS.studentLiam, schoolId: IDS.school, email: "liam.williams@tfs.test", fullName: "Liam Williams", timezone: null, status: "active" },
+  { id: IDS.studentOlivia, schoolId: IDS.school, email: "olivia.brown@tfs.test", fullName: "Olivia Brown", timezone: null, status: "active" },
+  { id: IDS.studentNoah, schoolId: IDS.school, email: "noah.davis@tfs.test", fullName: "Noah Davis", timezone: null, status: "active" },
+  { id: IDS.studentAva, schoolId: IDS.school, email: "ava.wilson@tfs.test", fullName: "Ava Wilson", timezone: null, status: "inactive" },
+  { id: IDS.mechanicDan, schoolId: IDS.school, email: "dan.garcia@tfs.test", fullName: "Dan Garcia", timezone: null, status: "active" },
+  { id: IDS.adminLisa, schoolId: IDS.school, email: "admin@tfs.test", fullName: "Lisa Park", timezone: null, status: "active" },
 ];
 
 export const userRoles: UserRole[] = [
@@ -69,17 +69,17 @@ export const userRoles: UserRole[] = [
 ];
 
 export const personProfiles: PersonProfile[] = [
-  { userId: IDS.instructorMike, schoolId: IDS.school, firstName: "Mike", lastName: "Reynolds", dateOfBirth: "1985-03-12", addressLine1: "1234 Airport Blvd", addressLine2: null, city: "Austin", state: "TX", postalCode: "78719", country: "US", phone: "512-555-0101", emailAlt: null, faaAirmanCertNumber: "3456789" },
-  { userId: IDS.instructorSarah, schoolId: IDS.school, firstName: "Sarah", lastName: "Chen", dateOfBirth: "1990-07-22", addressLine1: "5678 Runway Dr", addressLine2: "Apt 4B", city: "Austin", state: "TX", postalCode: "78723", country: "US", phone: "512-555-0102", emailAlt: null, faaAirmanCertNumber: "4567890" },
-  { userId: IDS.instructorJames, schoolId: IDS.school, firstName: "James", lastName: "Wright", dateOfBirth: "1982-11-05", addressLine1: "910 Hangar Ln", addressLine2: null, city: "Round Rock", state: "TX", postalCode: "78664", country: "US", phone: "512-555-0103", emailAlt: null, faaAirmanCertNumber: "5678901" },
-  { userId: IDS.studentAlex, schoolId: IDS.school, firstName: "Alex", lastName: "Martinez", dateOfBirth: "1998-05-18", addressLine1: "2345 Oak Hill Ave", addressLine2: null, city: "Austin", state: "TX", postalCode: "78749", country: "US", phone: "512-555-0201", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.studentEmma, schoolId: IDS.school, firstName: "Emma", lastName: "Johnson", dateOfBirth: "2001-01-30", addressLine1: "4567 Lake Austin Blvd", addressLine2: null, city: "Austin", state: "TX", postalCode: "78703", country: "US", phone: "512-555-0202", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.studentLiam, schoolId: IDS.school, firstName: "Liam", lastName: "Williams", dateOfBirth: "1995-09-08", addressLine1: "789 East Side Dr", addressLine2: null, city: "Pflugerville", state: "TX", postalCode: "78660", country: "US", phone: "512-555-0203", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.studentOlivia, schoolId: IDS.school, firstName: "Olivia", lastName: "Brown", dateOfBirth: "2000-12-14", addressLine1: "321 Congress Ave", addressLine2: "Unit 12", city: "Austin", state: "TX", postalCode: "78701", country: "US", phone: "512-555-0204", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.studentNoah, schoolId: IDS.school, firstName: "Noah", lastName: "Davis", dateOfBirth: "1997-06-25", addressLine1: "654 South First St", addressLine2: null, city: "Austin", state: "TX", postalCode: "78704", country: "US", phone: "512-555-0205", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.studentAva, schoolId: IDS.school, firstName: "Ava", lastName: "Wilson", dateOfBirth: "1999-04-02", addressLine1: "987 Research Blvd", addressLine2: null, city: "Austin", state: "TX", postalCode: "78759", country: "US", phone: "512-555-0206", emailAlt: null, faaAirmanCertNumber: null },
-  { userId: IDS.mechanicDan, schoolId: IDS.school, firstName: "Dan", lastName: "Garcia", dateOfBirth: "1978-08-16", addressLine1: "111 Mechanic Way", addressLine2: null, city: "Austin", state: "TX", postalCode: "78719", country: "US", phone: "512-555-0301", emailAlt: null, faaAirmanCertNumber: "2345678" },
-  { userId: IDS.adminLisa, schoolId: IDS.school, firstName: "Lisa", lastName: "Park", dateOfBirth: "1988-02-28", addressLine1: "222 Admin Plaza", addressLine2: null, city: "Austin", state: "TX", postalCode: "78702", country: "US", phone: "512-555-0401", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.instructorMike, schoolId: IDS.school, firstName: "Mike", lastName: "Reynolds", dateOfBirth: "1985-03-12", addressLine1: "1234 Airport Blvd", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36303", country: "US", phone: "334-555-0101", emailAlt: null, faaAirmanCertNumber: "3456789" },
+  { userId: IDS.instructorSarah, schoolId: IDS.school, firstName: "Sarah", lastName: "Chen", dateOfBirth: "1990-07-22", addressLine1: "5678 Runway Dr", addressLine2: "Apt 4B", city: "Dothan", state: "AL", postalCode: "36301", country: "US", phone: "334-555-0102", emailAlt: null, faaAirmanCertNumber: "4567890" },
+  { userId: IDS.instructorJames, schoolId: IDS.school, firstName: "James", lastName: "Wright", dateOfBirth: "1982-11-05", addressLine1: "910 Hangar Ln", addressLine2: null, city: "Enterprise", state: "AL", postalCode: "36330", country: "US", phone: "334-555-0103", emailAlt: null, faaAirmanCertNumber: "5678901" },
+  { userId: IDS.studentAlex, schoolId: IDS.school, firstName: "Alex", lastName: "Martinez", dateOfBirth: "1998-05-18", addressLine1: "2345 Westgate Pkwy", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36303", country: "US", phone: "334-555-0201", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.studentEmma, schoolId: IDS.school, firstName: "Emma", lastName: "Johnson", dateOfBirth: "2001-01-30", addressLine1: "4567 Ross Clark Cir", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36301", country: "US", phone: "334-555-0202", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.studentLiam, schoolId: IDS.school, firstName: "Liam", lastName: "Williams", dateOfBirth: "1995-09-08", addressLine1: "789 Rucker Blvd", addressLine2: null, city: "Enterprise", state: "AL", postalCode: "36330", country: "US", phone: "334-555-0203", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.studentOlivia, schoolId: IDS.school, firstName: "Olivia", lastName: "Brown", dateOfBirth: "2000-12-14", addressLine1: "321 Main St", addressLine2: "Unit 12", city: "Enterprise", state: "AL", postalCode: "36330", country: "US", phone: "334-555-0204", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.studentNoah, schoolId: IDS.school, firstName: "Noah", lastName: "Davis", dateOfBirth: "1997-06-25", addressLine1: "654 Honeysuckle Rd", addressLine2: null, city: "Ozark", state: "AL", postalCode: "36360", country: "US", phone: "334-555-0205", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.studentAva, schoolId: IDS.school, firstName: "Ava", lastName: "Wilson", dateOfBirth: "1999-04-02", addressLine1: "987 Geneva Hwy", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36305", country: "US", phone: "334-555-0206", emailAlt: null, faaAirmanCertNumber: null },
+  { userId: IDS.mechanicDan, schoolId: IDS.school, firstName: "Dan", lastName: "Garcia", dateOfBirth: "1978-08-16", addressLine1: "111 Napier Field Rd", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36303", country: "US", phone: "334-555-0301", emailAlt: null, faaAirmanCertNumber: "2345678" },
+  { userId: IDS.adminLisa, schoolId: IDS.school, firstName: "Lisa", lastName: "Park", dateOfBirth: "1988-02-28", addressLine1: "222 Foster St", addressLine2: null, city: "Dothan", state: "AL", postalCode: "36301", country: "US", phone: "334-555-0401", emailAlt: null, faaAirmanCertNumber: null },
 ];
 
 export const emergencyContacts: EmergencyContact[] = [
@@ -236,7 +236,7 @@ export const reservations: Reservation[] = [
   { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "academic", startTime: iso(addHours(thu, 10)), endTime: iso(addHours(thu, 12)), status: "approved", aircraftId: null, instructorId: IDS.instructorMike, studentId: IDS.studentAlex, roomId: IDS.roomClassroomB, notes: "XC planning ground school", lessonId: lIds.xcPlanning },
   { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(thu, 14)), endTime: iso(addHours(thu, 17)), status: "approved", aircraftId: IDS.aircraftN44ME, instructorId: IDS.instructorJames, studentId: IDS.studentNoah, roomId: null, notes: "Multi-engine familiarization", lessonId: null },
   // Friday
-  { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(fri, 8)), endTime: iso(addHours(fri, 12)), status: "approved", aircraftId: IDS.aircraftN172SP, instructorId: IDS.instructorSarah, studentId: IDS.studentLiam, roomId: null, notes: "Solo XC KAUS-KGTU-KHYI-KAUS", lessonId: lIds.soloXC },
+  { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(fri, 8)), endTime: iso(addHours(fri, 12)), status: "approved", aircraftId: IDS.aircraftN172SP, instructorId: IDS.instructorSarah, studentId: IDS.studentLiam, roomId: null, notes: "Solo XC KDHN-KEUF-KTOI-KDHN", lessonId: lIds.soloXC },
   { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(fri, 8)), endTime: iso(addHours(fri, 10)), status: "approved", aircraftId: IDS.aircraftN28PA, instructorId: IDS.instructorMike, studentId: IDS.studentOlivia, roomId: null, notes: "Traffic pattern practice", lessonId: lIds.patterns },
   { id: resId(), schoolId: IDS.school, baseId: IDS.base, activityType: "oral", startTime: iso(addHours(fri, 13)), endTime: iso(addHours(fri, 14)), status: "approved", aircraftId: null, instructorId: IDS.instructorMike, studentId: IDS.studentAlex, roomId: IDS.roomBriefingA, notes: "Stage 2 oral review", lessonId: null },
   // Past - closed
@@ -294,40 +294,40 @@ export const instructorCurrencies: InstructorCurrency[] = [
 
 // ── METAR ──────────────────────────────────────────────
 export const metarReports: MetarReport[] = [
-  { station: "KAUS", raw: "KAUS 131753Z 18010KT 10SM FEW045 SCT250 32/18 A2992 RMK AO2 SLP128", flightCategory: "VFR", temperature: 32, dewpoint: 18, windDirection: 180, windSpeed: 10, windGust: null, visibility: 10, altimeter: 29.92, clouds: "FEW045 SCT250" },
-  { station: "KGTU", raw: "KGTU 131755Z AUTO 17008KT 10SM CLR 31/17 A2993", flightCategory: "VFR", temperature: 31, dewpoint: 17, windDirection: 170, windSpeed: 8, windGust: null, visibility: 10, altimeter: 29.93, clouds: "CLR" },
-  { station: "KHYI", raw: "KHYI 131756Z AUTO 20012G18KT 7SM BKN025 OVC040 28/21 A2990", flightCategory: "MVFR", temperature: 28, dewpoint: 21, windDirection: 200, windSpeed: 12, windGust: 18, visibility: 7, altimeter: 29.90, clouds: "BKN025 OVC040" },
-  { station: "KGRK", raw: "KGRK 131755Z 19015G22KT 4SM BR OVC015 25/22 A2988", flightCategory: "IFR", temperature: 25, dewpoint: 22, windDirection: 190, windSpeed: 15, windGust: 22, visibility: 4, altimeter: 29.88, clouds: "OVC015" },
-  { station: "KBAZ", raw: "KBAZ 131754Z AUTO 21008KT 10SM SCT060 30/16 A2991", flightCategory: "VFR", temperature: 30, dewpoint: 16, windDirection: 210, windSpeed: 8, windGust: null, visibility: 10, altimeter: 29.91, clouds: "SCT060" },
+  { station: "KDHN", raw: "KDHN 131753Z 18010KT 10SM FEW045 SCT250 32/18 A2992 RMK AO2 SLP128", flightCategory: "VFR", temperature: 32, dewpoint: 18, windDirection: 180, windSpeed: 10, windGust: null, visibility: 10, altimeter: 29.92, clouds: "FEW045 SCT250" },
+  { station: "KEUF", raw: "KEUF 131755Z AUTO 17008KT 10SM CLR 31/17 A2993", flightCategory: "VFR", temperature: 31, dewpoint: 17, windDirection: 170, windSpeed: 8, windGust: null, visibility: 10, altimeter: 29.93, clouds: "CLR" },
+  { station: "KTOI", raw: "KTOI 131756Z AUTO 20012G18KT 7SM BKN025 OVC040 28/21 A2990", flightCategory: "MVFR", temperature: 28, dewpoint: 21, windDirection: 200, windSpeed: 12, windGust: 18, visibility: 7, altimeter: 29.90, clouds: "BKN025 OVC040" },
+  { station: "KOZR", raw: "KOZR 131755Z 19015G22KT 4SM BR OVC015 25/22 A2988", flightCategory: "IFR", temperature: 25, dewpoint: 22, windDirection: 190, windSpeed: 15, windGust: 22, visibility: 4, altimeter: 29.88, clouds: "OVC015" },
+  { station: "KPAM", raw: "KPAM 131754Z AUTO 21008KT 10SM SCT060 30/16 A2991", flightCategory: "VFR", temperature: 30, dewpoint: 16, windDirection: 210, windSpeed: 8, windGust: null, visibility: 10, altimeter: 29.91, clouds: "SCT060" },
 ];
 
 // ── Aircraft Positions (ADS-B mock) ────────────────────
 export const aircraftPositions: AircraftPosition[] = [
   // School aircraft - flying
-  { icaoHex: "A12345", callsign: "N172SP", latitude: 30.35, longitude: -97.55, altitudeFt: 3500, groundSpeedKts: 105, headingDeg: 270, verticalRateFpm: 0, isSchoolAircraft: true, tailNumber: "N172SP", aircraftId: IDS.aircraftN172SP },
-  { icaoHex: "A23456", callsign: "N28PA", latitude: 30.08, longitude: -97.80, altitudeFt: 4500, groundSpeedKts: 115, headingDeg: 180, verticalRateFpm: -200, isSchoolAircraft: true, tailNumber: "N28PA", aircraftId: IDS.aircraftN28PA },
+  { icaoHex: "A12345", callsign: "N172SP", latitude: 31.48, longitude: -85.30, altitudeFt: 3500, groundSpeedKts: 105, headingDeg: 270, verticalRateFpm: 0, isSchoolAircraft: true, tailNumber: "N172SP", aircraftId: IDS.aircraftN172SP },
+  { icaoHex: "A23456", callsign: "N28PA", latitude: 31.15, longitude: -85.60, altitudeFt: 4500, groundSpeedKts: 115, headingDeg: 180, verticalRateFpm: -200, isSchoolAircraft: true, tailNumber: "N28PA", aircraftId: IDS.aircraftN28PA },
   // School aircraft - on ground
-  { icaoHex: "A34567", callsign: "N152AB", latitude: 30.1945, longitude: -97.6699, altitudeFt: 0, groundSpeedKts: 0, headingDeg: 0, verticalRateFpm: 0, isSchoolAircraft: true, tailNumber: "N152AB", aircraftId: IDS.aircraftN152AB },
+  { icaoHex: "A34567", callsign: "N152AB", latitude: 31.3213, longitude: -85.4496, altitudeFt: 0, groundSpeedKts: 0, headingDeg: 0, verticalRateFpm: 0, isSchoolAircraft: true, tailNumber: "N152AB", aircraftId: IDS.aircraftN152AB },
   // Traffic
-  { icaoHex: "B11111", callsign: "SWA1234", latitude: 30.30, longitude: -97.45, altitudeFt: 8000, groundSpeedKts: 250, headingDeg: 320, verticalRateFpm: -500, isSchoolAircraft: false },
-  { icaoHex: "B22222", callsign: "UAL567", latitude: 30.50, longitude: -97.70, altitudeFt: 12000, groundSpeedKts: 300, headingDeg: 45, verticalRateFpm: 0, isSchoolAircraft: false },
-  { icaoHex: "B33333", callsign: "N789XY", latitude: 30.05, longitude: -97.50, altitudeFt: 5500, groundSpeedKts: 130, headingDeg: 90, verticalRateFpm: 500, isSchoolAircraft: false },
-  { icaoHex: "B44444", callsign: "AAL890", latitude: 30.40, longitude: -97.90, altitudeFt: 15000, groundSpeedKts: 350, headingDeg: 200, verticalRateFpm: -1000, isSchoolAircraft: false },
-  { icaoHex: "B55555", callsign: "N456PP", latitude: 30.15, longitude: -97.40, altitudeFt: 2500, groundSpeedKts: 90, headingDeg: 150, verticalRateFpm: 0, isSchoolAircraft: false },
-  { icaoHex: "B66666", callsign: "SKW321", latitude: 30.60, longitude: -97.60, altitudeFt: 10000, groundSpeedKts: 280, headingDeg: 260, verticalRateFpm: 0, isSchoolAircraft: false },
-  { icaoHex: "B77777", callsign: "N901AB", latitude: 30.25, longitude: -98.00, altitudeFt: 6000, groundSpeedKts: 140, headingDeg: 30, verticalRateFpm: 200, isSchoolAircraft: false },
+  { icaoHex: "B11111", callsign: "SWA1234", latitude: 31.50, longitude: -85.20, altitudeFt: 8000, groundSpeedKts: 250, headingDeg: 320, verticalRateFpm: -500, isSchoolAircraft: false },
+  { icaoHex: "B22222", callsign: "UAL567", latitude: 31.70, longitude: -85.50, altitudeFt: 12000, groundSpeedKts: 300, headingDeg: 45, verticalRateFpm: 0, isSchoolAircraft: false },
+  { icaoHex: "B33333", callsign: "N789XY", latitude: 31.10, longitude: -85.25, altitudeFt: 5500, groundSpeedKts: 130, headingDeg: 90, verticalRateFpm: 500, isSchoolAircraft: false },
+  { icaoHex: "B44444", callsign: "AAL890", latitude: 31.60, longitude: -85.70, altitudeFt: 15000, groundSpeedKts: 350, headingDeg: 200, verticalRateFpm: -1000, isSchoolAircraft: false },
+  { icaoHex: "B55555", callsign: "N456PP", latitude: 31.25, longitude: -85.15, altitudeFt: 2500, groundSpeedKts: 90, headingDeg: 150, verticalRateFpm: 0, isSchoolAircraft: false },
+  { icaoHex: "B66666", callsign: "SKW321", latitude: 31.80, longitude: -85.40, altitudeFt: 10000, groundSpeedKts: 280, headingDeg: 260, verticalRateFpm: 0, isSchoolAircraft: false },
+  { icaoHex: "B77777", callsign: "N901AB", latitude: 31.35, longitude: -85.80, altitudeFt: 6000, groundSpeedKts: 140, headingDeg: 30, verticalRateFpm: 200, isSchoolAircraft: false },
 ];
 
 // ── Weather Warnings ───────────────────────────────────
 export const weatherWarnings: WeatherWarning[] = [
-  { id: "wx-01", type: "AIRMET", title: "AIRMET TANGO - Turbulence", description: "Moderate turbulence below 8000ft MSL due to low-level wind shear. Area from KAUS 30NM NW to 50NM NE.", severity: "moderate", expiresAt: iso(addHours(now, 4)) },
+  { id: "wx-01", type: "AIRMET", title: "AIRMET TANGO - Turbulence", description: "Moderate turbulence below 8000ft MSL due to low-level wind shear. Area from KDHN 30NM NW to 50NM NE.", severity: "moderate", expiresAt: iso(addHours(now, 4)) },
 ];
 
 // ── Helper: Auth lookup ────────────────────────────────
 export const mockCredentials: Record<string, { userId: string; role: Role }> = {
-  "instructor@alpha.test": { userId: IDS.instructorMike, role: "instructor" },
-  "student@alpha.test": { userId: IDS.studentAlex, role: "student" },
-  "admin@alpha.test": { userId: IDS.adminLisa, role: "admin" },
+  "instructor@tfs.test": { userId: IDS.instructorMike, role: "instructor" },
+  "student@tfs.test": { userId: IDS.studentAlex, role: "student" },
+  "admin@tfs.test": { userId: IDS.adminLisa, role: "admin" },
 };
 
 // ── Helper: get user's students ────────────────────────

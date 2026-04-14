@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plane, BookOpen, UserPlus, Mail } from "lucide-react";
+import { BookOpen, UserPlus, Mail } from "lucide-react";
+import { TFSBadge } from "@/components/tfs-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,7 @@ export default function LandingPage() {
     if (result.success && result.role) {
       router.push("/instructor/schedule");
     } else {
-      setError("Invalid credentials. Try instructor@alpha.test / demo");
+      setError("Invalid credentials. Try instructor@tfs.test / demo");
     }
   }
 
@@ -43,11 +44,9 @@ export default function LandingPage() {
           {/* Left: Branding */}
           <div className="space-y-6 text-center lg:text-left">
             <div className="flex items-center gap-3 justify-center lg:justify-start">
-              <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-                <Plane className="h-7 w-7 text-primary-foreground" />
-              </div>
+              <TFSBadge size={52} />
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Alpha Flight Academy</h1>
+                <h1 className="text-3xl font-bold tracking-tight">TFS Flight School</h1>
                 <p className="text-sm text-muted-foreground">Part 61 Flight School</p>
               </div>
             </div>
@@ -66,7 +65,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <div className="h-2 w-2 rounded-full bg-purple-500" />
-                Austin, TX (KAUS)
+                Dothan, AL (KDHN)
               </div>
             </div>
           </div>
@@ -84,7 +83,7 @@ export default function LandingPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@alpha.test"
+                    placeholder="you@tfs.test"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     required
@@ -104,7 +103,7 @@ export default function LandingPage() {
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" className="w-full">Sign In</Button>
                 <p className="text-xs text-muted-foreground text-center pt-1">
-                  Demo: instructor@alpha.test / any password
+                  Demo: instructor@tfs.test / any password
                 </p>
               </form>
             </CardContent>
