@@ -1,9 +1,10 @@
 # UI ↔ Database Connection Map
 
 > **Living document** — Auto-updated as UI pages and DB schema evolve.  
-> Last scanned: 2026-04-14  
+> Last scanned: 2026-04-14 (second pass — 13 new table connections added)  
 > UI Prototype: `Part-61-UI-Prototype/`  
-> Database Schema: `Part-61-School/packages/db/src/schema/`
+> Database Schema: `Part-61-School/packages/db/src/schema/`  
+> **Role scope:** INSTRUCTOR role only. Student, Maintenance, Admin, and Guest role views will be mapped separately.
 
 ---
 
@@ -151,6 +152,8 @@
 | Last activity date | `MAX(lesson_grade_sheet.conducted_at)` per enrollment | 🔁 |
 | Days since activity | 🔁 Computed from last activity | 🔁 |
 | Progress bar + % | 🔁 `COUNT(sealed grade_sheets) / COUNT(lessons in course_version)` | 🔁 |
+| HOLD badge | `person_hold` WHERE `user_id = ? AND cleared_at IS NULL` | ✅ |
+| No-Show count badge | `COUNT(no_show WHERE user_id = ?)` | ✅ |
 
 ### Filters
 | UI Element | DB Table.Column | Status |
@@ -162,6 +165,30 @@
 ---
 
 ## 5. Student Detail (`app/instructor/students/[id]/`)
+
+### Active Hold Alert Banner
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Hold alert banner | `person_hold` WHERE `user_id = ? AND cleared_at IS NULL` | ✅ |
+| Hold kind badge | `person_hold.kind` | ✅ |
+| Hold reason | `person_hold.reason` | ✅ |
+| Hold date | `person_hold.created_at` | ✅ |
+
+### Compliance Warning Banner
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Compliance warning alert | `training_record_audit_exception` WHERE `student_enrollment_id = ? AND resolved_at IS NULL` | ✅ |
+| Exception severity badge | `training_record_audit_exception.severity` | ✅ |
+| Exception kind label | `training_record_audit_exception.kind` | ✅ |
+| First detected date | `training_record_audit_exception.first_detected_at` | ✅ |
+
+### Header
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Student name | `users.full_name` | ✅ |
+| Student email | `users.email` | ✅ |
+| HOLD badge (next to name) | `person_hold` WHERE `cleared_at IS NULL` | ✅ |
+| No-Show count badge (next to name) | `COUNT(no_show WHERE user_id = ?)` | ✅ |
 
 ### Demographics Tab
 | UI Element | DB Table.Column | Status |
@@ -176,11 +203,27 @@
 | Emergency contact relationship | `emergency_contact.relationship` | ✅ |
 | Emergency contact phone | `emergency_contact.phone` | ✅ |
 | Emergency contact email | `emergency_contact.email` | ✅ |
-| Medical class | — | 🔴 See note above — no medical class column |
-| Medical expiry | — | 🔴 See note above |
+| Medical on File indicator | `documents` WHERE `kind='medical' AND user_id = ?` | ✅ |
+| Medical expiry date | `documents.expires_at` WHERE `kind='medical'` | ✅ |
 | Enrolled date | `student_course_enrollment.enrolled_at` | ✅ |
 | Program | `course.title` via enrollment chain | ✅ |
 | Primary instructor | `users.full_name` via `enrollment.primary_instructor_id` | ✅ |
+
+### Demographics Tab — Documents Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Document kind label | `documents.kind` | ✅ |
+| Document expiry badge | `documents.expires_at` | ✅ |
+| Expired/valid status | 🔁 Derived: `expires_at < NOW()` | 🔁 |
+| Upload date | `documents.uploaded_at` | ✅ |
+
+### Demographics Tab — Info Release Authorizations Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Authorized person name | `info_release_authorization.name` | ✅ |
+| Relationship | `info_release_authorization.relationship` | ✅ |
+| Notes | `info_release_authorization.notes` | ✅ |
+| Active filter | `info_release_authorization.revoked_at IS NULL` | ✅ |
 
 ### Progress Tab
 | UI Element | DB Table.Column | Status |
@@ -194,6 +237,76 @@
 | Lesson completion dot | 🔁 `lesson_grade_sheet.status = 'sealed'` | 🔁 |
 | Completion date | `lesson_grade_sheet.conducted_at` | ✅ |
 
+### Progress Tab — Flight Time Summary Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Dual received total | `flight_log_time` WHERE `kind='dual_received'` → SUM(`day_minutes` + `night_minutes`) | ✅ |
+| Solo total | `flight_log_time` WHERE `kind='solo'` → SUM(`day_minutes` + `night_minutes`) | ✅ |
+| Cross-country total | `flight_log_time` → SUM(`cross_country_minutes`) | ✅ |
+| Night total | `flight_log_time` → SUM(`night_minutes`) | ✅ |
+| Instrument total | `flight_log_time` → SUM(`instrument_actual_minutes` + `instrument_simulated_minutes`) | ✅ |
+| Landing count | `flight_log_time` → SUM(`day_landings` + `night_landings`) | ✅ |
+
+### Progress Tab — Endorsements Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Endorsement category badge | `student_endorsement.category` | ✅ |
+| Sealed badge | `student_endorsement.sealed` | ✅ |
+| Expiry badge | `student_endorsement.expires_at` | ✅ |
+| Expired status | 🔁 Derived: `expires_at < NOW()` | 🔁 |
+| Rendered text | `student_endorsement.rendered_text` | ✅ |
+| Issued date | `student_endorsement.issued_at` | ✅ |
+| Aircraft context | `student_endorsement.aircraft_context` | ✅ |
+| Active filter | `student_endorsement.revoked_at IS NULL` | ✅ |
+
+### Progress Tab — Test Results Table (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Test kind badge | `test_grade.test_kind` | ✅ |
+| Score / max score | `test_grade.score`, `test_grade.max_score` | ✅ |
+| Recorded date | `test_grade.recorded_at` | ✅ |
+| Remarks | `test_grade.remarks` | ✅ |
+
+### Progress Tab — Stage Checks Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Stage name | `stage.title` via `stage_check.stage_id` | ✅ |
+| Checker name | `users.full_name` via `stage_check.checker_user_id` | ✅ |
+| Conducted date | `stage_check.conducted_at` | ✅ |
+| Scheduled date | `stage_check.scheduled_at` | ✅ |
+| Status badge (passed/failed/scheduled) | `stage_check.status` | ✅ |
+| Status dot color | 🔁 Derived from `stage_check.status` | 🔁 |
+| Stage check badge on accordion header | `stage_check.status` matched by `stage_id` | ✅ |
+
+### Progress Tab — Active Overrides Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Override kind badge | `lesson_override.kind` | ✅ |
+| Lesson code + title | `lesson.code`, `.title` via `lesson_override.lesson_id` | ✅ |
+| Justification | `lesson_override.justification` | ✅ |
+| Expiry date | `lesson_override.expires_at` | ✅ |
+| Consumed status | `lesson_override.consumed_at` (null = unused) | ✅ |
+| Active filter | `lesson_override.revoked_at IS NULL` | ✅ |
+
+### Progress Tab — Line Item Grades (nested under lessons in accordion) (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Line item title | `line_item.title` via `line_item_grade.line_item_id` | ✅ |
+| Grade value badge | `line_item_grade.grade_value` | ✅ |
+| Grade remarks | `line_item_grade.grade_remarks` | ✅ |
+| Grade sheet association | `line_item_grade.grade_sheet_id` | ✅ |
+
+### Progress Tab — Forecast Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Confidence badge | `student_progress_forecast_cache.confidence` | ✅ |
+| Actual hours to date | `student_progress_forecast_cache.actual_hours_to_date` | ✅ |
+| Expected hours to date | `student_progress_forecast_cache.expected_hours_to_date` | ✅ |
+| Ahead/behind hours | `student_progress_forecast_cache.ahead_behind_hours` | ✅ |
+| Ahead/behind weeks | `student_progress_forecast_cache.ahead_behind_weeks` | ✅ |
+| Remaining hours | `student_progress_forecast_cache.remaining_hours` | ✅ |
+| Projected checkride date | `student_progress_forecast_cache.projected_checkride_date` | ✅ |
+
 ### Schedule Tab
 | UI Element | DB Table.Column | Status |
 |------------|----------------|--------|
@@ -201,6 +314,13 @@
 | Session date/time | `reservation.time_range` | ✅ |
 | Activity type badge | `reservation.activity_type` | ✅ |
 | Past/future styling | 🔁 Derived from `time_range` vs `NOW()` | 🔁 |
+
+### Schedule Tab — No-Show History Card (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| No-show date | `no_show.scheduled_at` | ✅ |
+| No-show reason | `no_show.reason` | ✅ |
+| No-show count | 🔁 `COUNT(no_show WHERE user_id = ?)` | 🔁 |
 
 ### Action Buttons
 | UI Element | DB Operation | Status |
@@ -219,22 +339,39 @@
 | 🟡 `person_profile.citizenship_status` | person_profile | Not displayed |
 | 🟡 `person_profile.tsa_afsp_status` | person_profile | Not displayed — important for foreign nationals |
 | 🟡 `emergency_contact.is_primary` | emergency_contact | Not indicated in UI |
-| 🟡 `info_release_authorization.*` | info_release_authorization | Entire table not represented |
-| 🟡 `student_endorsement.*` | student_endorsement | Entire table not represented |
 | 🟡 `student_course_enrollment.notes` | enrollment | Not displayed |
 | 🟡 `student_course_enrollment.plan_cadence_hours_per_week` | enrollment | Not displayed |
 | 🟡 `student_course_enrollment.completed_at` | enrollment | Status not shown |
 | 🟡 `student_course_enrollment.withdrawn_at` | enrollment | Status not shown |
-| 🟡 `student_progress_forecast_cache.*` | forecast | Entire cache table not represented |
-| 🟡 `lesson_override.*` | lesson_override | Not surfaced |
-| 🟡 `training_record_audit_exception.*` | audit_exception | Not surfaced |
-| 🟡 `test_grade.*` | test_grade | Not surfaced |
-| 🟡 `stage_check.*` | stage_check | Not surfaced |
-| 🟡 `flight_log_time.*` | flight_log_time | Not surfaced in student view |
-| 🟡 `line_item_grade.*` | line_item_grade | Grade detail not shown per line item |
-| 🟡 `no_show.*` | no_show | Not tracked in UI |
-| 🟡 `person_hold.*` | person_hold | Not displayed — holds/groundings for students |
-| 🟡 `documents.*` | documents | Student documents not displayed |
+| 🟡 `student_endorsement.template_id` | student_endorsement | Not displayed |
+| 🟡 `student_endorsement.issued_by_user_id` | student_endorsement | Issuer name not shown |
+| 🟡 `stage_check.remarks` | stage_check | Not displayed |
+| 🟡 `stage_check.sealed` | stage_check | Not displayed |
+| 🟡 `flight_log_time.reservation_id` | flight_log_time | Link to reservation not shown |
+| 🟡 `flight_log_time.is_simulator` | flight_log_time | Not broken out separately |
+| 🟡 `flight_log_time.instrument_approaches` | flight_log_time | Not displayed |
+| 🟡 `test_grade.component_kind` | test_grade | Not displayed |
+| 🟡 `test_grade.component_id` | test_grade | Not displayed |
+| 🟡 `test_grade.sealed` | test_grade | Not displayed |
+| 🟡 `test_grade.recorded_by_user_id` | test_grade | Not displayed |
+| 🟡 `person_hold.created_by_user_id` | person_hold | Creator not shown |
+| 🟡 `person_hold.cleared_at/by/reason` | person_hold | Clearance info not shown (filtered out) |
+| 🟡 `documents.storage_path` | documents | Not displayed (internal) |
+| 🟡 `documents.mime_type` | documents | Not displayed |
+| 🟡 `documents.byte_size` | documents | Not displayed |
+| 🟡 `documents.uploaded_by_user_id` | documents | Uploader not shown |
+| 🟡 `info_release_authorization.granted_at` | info_release_authorization | Grant date not shown |
+| 🟡 `lesson_override.granted_at` | lesson_override | Grant date not shown |
+| 🟡 `lesson_override.granted_by_user_id` | lesson_override | Granter not shown |
+| 🟡 `no_show.aircraft_id` | no_show | Aircraft not shown |
+| 🟡 `no_show.instructor_id` | no_show | Instructor not shown |
+| 🟡 `no_show.recorded_by_user_id` | no_show | Recorder not shown |
+| 🟡 `no_show.recorded_at` | no_show | Record timestamp not shown |
+| 🟡 `student_progress_forecast_cache.computed_at` | forecast | Computation time not shown |
+| 🟡 `student_progress_forecast_cache.projected_completion_date` | forecast | Not displayed (only checkride date shown) |
+| 🟡 `training_record_audit_exception.details` | audit_exception | JSONB details not displayed |
+| 🟡 `training_record_audit_exception.last_detected_at` | audit_exception | Only first_detected_at shown |
+| 🟡 `line_item_grade.position` | line_item_grade | Not displayed (used for ordering) |
 
 ---
 
@@ -289,8 +426,6 @@
 |-----------|-------|------|
 | 🟡 `geofence.kind` | geofence | UI hardcodes circle, DB supports polygon |
 | 🟡 `geofence.label` | geofence | Not displayed |
-| 🟡 `fif_notice.*` | fif_notice | FIF notices not shown on map |
-| 🟡 `fif_acknowledgement.*` | fif_acknowledgement | Not tracked |
 | 🟡 `passenger_manifest.*` | passenger_manifest | Not shown for flying aircraft |
 
 ---
@@ -391,6 +526,36 @@
 
 ---
 
+## 10. FIF Notice Banner (`app/instructor/layout.tsx`) (NEW)
+
+### FIF Notice List
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Notice severity badge | `fif_notice.severity` | ✅ |
+| Notice title | `fif_notice.title` | ✅ |
+| Notice body | `fif_notice.body` | ✅ |
+| Expiry filter | `fif_notice.expires_at` (expired notices hidden) | ✅ |
+| Severity sort order | 🔁 Derived: critical > important > info | 🔁 |
+| Severity-based styling (bg, border, icon) | 🔁 Derived from `fif_notice.severity` | 🔁 |
+
+### FIF Acknowledgement
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Acknowledged state per user | `fif_acknowledgement` WHERE `user_id = ? AND notice_id = ?` | ✅ |
+| Acknowledge button | INSERT `fif_acknowledgement` | ✅ |
+| Unacknowledged count | 🔁 `COUNT(active notices) - COUNT(acknowledged)` | 🔁 |
+| Acknowledge action | INSERT `fif_acknowledgement(notice_id, user_id, acknowledged_at)` | ✅ |
+
+### DB Columns NOT in FIF Banner UI
+| DB Column | Table | Note |
+|-----------|-------|------|
+| 🟡 `fif_notice.base_id` | fif_notice | Not used to filter (shows all notices) |
+| 🟡 `fif_notice.posted_at` | fif_notice | Post date not displayed |
+| 🟡 `fif_notice.posted_by_user_id` | fif_notice | Author not shown |
+| 🟡 `fif_notice.effective_at` | fif_notice | Effective date not used in filter |
+
+---
+
 ## Summary: Gap Analysis
 
 ### 🔴 UI Elements with NO DB Column (needs schema work)
@@ -411,28 +576,39 @@
 ### 🟡 DB Tables with NO UI Representation (not yet surfaced)
 | # | DB Table | Priority | Notes |
 |---|---------|----------|-------|
-| 1 | `student_endorsement` | High | Critical for checkride eligibility |
-| 2 | `stage_check` | High | Stage check scheduling & results |
-| 3 | `flight_log_time` | High | Student flight time tracking |
-| 4 | `line_item_grade` | High | Detailed grading per line item |
-| 5 | `test_grade` | High | Knowledge/oral test results |
-| 6 | `person_hold` | High | Safety holds on students |
-| 7 | `documents` | Medium | Uploaded documents (medical, license, etc.) |
-| 8 | `info_release_authorization` | Medium | FERPA-like release tracking |
-| 9 | `student_progress_forecast_cache` | Medium | Predicted completion dates |
-| 10 | `lesson_override` | Medium | Prerequisite waivers |
-| 11 | `training_record_audit_exception` | Medium | Compliance warnings |
-| 12 | `no_show` | Medium | No-show tracking |
-| 13 | `fif_notice` / `fif_acknowledgement` | Medium | Flight Information Folder |
-| 14 | `passenger_manifest` | Low | Dispatch feature |
-| 15 | `course_phase` / `unit` | Low | Syllabus depth (phases within stages) |
-| 16 | `aircraft_component` | Low | Detailed component tracking |
-| 17 | `airworthiness_directive` | Low | AD compliance tracking |
-| 18 | `logbook_entry` | Low | Aircraft maintenance logbook |
-| 19 | `work_order_task` | Low | WO task breakdown |
-| 20 | `part` / `part_lot` | Low | Parts inventory |
-| 21 | `audit_log` | Low | System audit trail |
-| 22 | `flight_log_entry` / `flight_log_entry_engine` | Low | Hobbs/tach recording |
+| 1 | `passenger_manifest` | Low | Dispatch feature |
+| 2 | `course_phase` / `unit` | Low | Syllabus depth (phases within stages) |
+| 3 | `aircraft_component` | Low | Detailed component tracking |
+| 4 | `airworthiness_directive` | Low | AD compliance tracking |
+| 5 | `logbook_entry` | Low | Aircraft maintenance logbook |
+| 6 | `work_order_task` | Low | WO task breakdown |
+| 7 | `part` / `part_lot` | Low | Parts inventory |
+| 8 | `audit_log` | Low | System audit trail |
+| 9 | `flight_log_entry` / `flight_log_entry_engine` | Low | Hobbs/tach recording |
+
+### Previously Unsurfaced Tables — Now Connected (this scan)
+| # | DB Table | Where Surfaced | Connection Quality |
+|---|---------|----------------|-------------------|
+| 1 | `student_endorsement` | Student Detail > Progress tab > Endorsements card | ✅ Field-level mapped |
+| 2 | `stage_check` | Student Detail > Progress tab > Stage Checks card + accordion headers | ✅ Field-level mapped |
+| 3 | `flight_log_time` | Student Detail > Progress tab > Flight Time Summary card | ✅ Field-level mapped |
+| 4 | `line_item_grade` | Student Detail > Progress tab > nested under lessons in accordion | ✅ Field-level mapped |
+| 5 | `test_grade` | Student Detail > Progress tab > Test Results table | ✅ Field-level mapped |
+| 6 | `person_hold` | Student List > HOLD badge + Student Detail > alert banner + header badge | ✅ Field-level mapped |
+| 7 | `documents` | Student Detail > Demographics tab > Documents card + Medical info | ✅ Field-level mapped |
+| 8 | `info_release_authorization` | Student Detail > Demographics tab > Info Release card | ✅ Field-level mapped |
+| 9 | `lesson_override` | Student Detail > Progress tab > Active Overrides card | ✅ Field-level mapped |
+| 10 | `no_show` | Student List > NS badge + Student Detail > header badge + Schedule tab > No-Show History | ✅ Field-level mapped |
+| 11 | `fif_notice` / `fif_acknowledgement` | Instructor layout > dashboard-wide FIF banner | ✅ Field-level mapped |
+| 12 | `student_progress_forecast_cache` | Student Detail > Progress tab > Forecast card | ✅ Field-level mapped |
+| 13 | `training_record_audit_exception` | Student Detail > Compliance Warning banner | ✅ Field-level mapped |
+
+### Coverage Summary
+| Metric | Previous | Current | Change |
+|--------|----------|---------|--------|
+| DB tables with UI representation | ~25 | ~38 | +13 |
+| DB tables with NO UI (🟡) | 22 | 9 | -13 |
+| UI elements with NO DB column (🔴) | 11 | 11 | unchanged |
 
 ---
 
@@ -449,6 +625,16 @@
 | draft, open, in_progress, pending_signoff, closed, cancelled | `work_order_status` | ✅ Exact match |
 | vacation, sick, personal, training, other | `unavailability_kind` | ✅ Exact match |
 | student, instructor, mechanic, admin, rental_customer | `role` | ✅ Exact match |
+| student_pilot, solo, xc, aircraft_class_rating, flight_review, ipc, practical_test, knowledge_test, other | `endorsement_category` | ✅ Exact match (NEW) |
+| scheduled, passed, failed | `stage_check_status` | ✅ Exact match (NEW) |
+| dual_received, dual_given, pic, sic, solo | `flight_log_time_kind` | ✅ Exact match (NEW) |
+| knowledge, oral, end_of_stage, practical | `test_kind` | ✅ Exact match (NEW) |
+| hold, grounding | `hold_kind` | ✅ Exact match (NEW) |
+| medical, pilot_license, government_id, insurance, aircraft_photo | `document_kind` | ✅ Exact match (NEW) |
+| prerequisite_skip, repeat_limit_exceeded, currency_waiver | `lesson_override_kind` | ✅ Exact match (NEW) |
+| info, important, critical | `fif_severity` | ✅ Exact match (NEW) |
+| missing_lessons, hours_deficit, missing_endorsements, missing_stage_checks, stale_rollovers, expired_overrides | `audit_exception_kind` | ✅ Exact match (NEW) |
+| info, warn, critical | `audit_exception_severity` | ✅ Exact match (NEW) |
 | VFR, MVFR, IFR, LIFR | — | 🔴 UI-only (external weather data) |
 | bug, layout, suggestion, question, general | — | 🔴 Feedback widget only (mailto) |
 
