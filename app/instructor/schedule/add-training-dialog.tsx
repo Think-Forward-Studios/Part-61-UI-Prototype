@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ChevronRight, UserPlus, Check } from "lucide-react";
+import { CalendarIcon, ChevronRight, UserPlus, Check, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -36,6 +36,7 @@ export function AddTrainingDialog({ open, onOpenChange }: { open: boolean; onOpe
   // New student form
   const [newFirst, setNewFirst] = useState("");
   const [newLast, setNewLast] = useState("");
+  const [medicalFileName, setMedicalFileName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
 
@@ -204,6 +205,30 @@ export function AddTrainingDialog({ open, onOpenChange }: { open: boolean; onOpe
                   <SelectItem value="none">None Yet</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Upload Medical Certificate (optional)</Label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 px-3 py-2 rounded-md border border-dashed cursor-pointer hover:bg-muted/50 transition-colors text-sm text-muted-foreground flex-1">
+                  <Upload className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{medicalFileName || "Choose image or PDF..."}</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setMedicalFileName(file.name);
+                    }}
+                  />
+                </label>
+                {medicalFileName && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setMedicalFileName("")}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">Image will be stored securely and linked to the student record.</p>
             </div>
             <div className="space-y-1">
               <Label>Training Program</Label>

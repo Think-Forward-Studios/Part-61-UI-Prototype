@@ -120,9 +120,18 @@ const severityConfig: Record<string, { bg: string; border: string; icon: string 
 
 function FifBanner({ userId }: { userId: string }) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [acknowledged, setAcknowledged] = useState<Set<string>>(
     () => new Set(fifAcknowledgements.filter(a => a.userId === userId).map(a => a.noticeId))
   );
+
+  const toggleExpand = (id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const activeNotices = useMemo(() => {
     return fifNotices
@@ -149,15 +158,23 @@ function FifBanner({ userId }: { userId: string }) {
         return (
           <div key={notice.id} className={`flex items-start gap-3 px-4 py-2 border-b last:border-b-0 ${config.bg}`}>
             <AlertTriangle className={`h-4 w-4 mt-0.5 shrink-0 ${config.icon}`} />
-            <div className="flex-1 min-w-0">
+            <button
+              type="button"
+              className="flex-1 min-w-0 text-left cursor-pointer"
+              onClick={() => toggleExpand(notice.id)}
+            >
               <div className="flex items-center gap-2">
                 <Badge className={`text-[10px] ${notice.severity === "critical" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" : notice.severity === "important" ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400" : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"}`}>
                   {notice.severity}
                 </Badge>
                 <span className="text-sm font-medium truncate">{notice.title}</span>
+                <span className="text-[10px] text-muted-foreground ml-auto shrink-0">{expanded.has(notice.id) ? "collapse" : "expand"}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{notice.body}</p>
-            </div>
+              <p className={`text-xs text-muted-foreground mt-0.5 ${expanded.has(notice.id) ? "" : "line-clamp-1"}`}>{notice.body}</p>
+              {expanded.has(notice.id) && notice.expiresAt && (
+                <p className="text-[10px] text-muted-foreground mt-1">Expires: {new Date(notice.expiresAt).toLocaleDateString()}</p>
+              )}
+            </button>
             <div className="flex items-center gap-1 shrink-0">
               {!isAcked ? (
                 <button
