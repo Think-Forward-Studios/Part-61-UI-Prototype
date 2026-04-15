@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Home, AlertTriangle, Plane, Wind, Eye, Thermometer, Gauge } from "lucide-react";
-import { base, aircraftPositions, metarReports, weatherWarnings, reservations, users } from "@/lib/mock-data";
-import type { AircraftPosition, MetarReport } from "@/lib/types";
+import { Home, AlertTriangle, Plane, Wind, Eye, Thermometer, Gauge, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { base, aircraftPositions, metarReports, weatherWarnings, reservations, users, passengerManifests } from "@/lib/mock-data";
+import type { AircraftPosition, MetarReport, PassengerManifest } from "@/lib/types";
 
 const FleetMapComponent = dynamic(() => import("./fleet-map"), { ssr: false, loading: () => <div className="h-full bg-muted animate-pulse rounded-lg" /> });
 
@@ -23,6 +23,7 @@ const categoryColors: Record<string, string> = {
 export default function LiveMapPage() {
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
   const [expandedMetar, setExpandedMetar] = useState<string>("KDHN");
+  const [selectedAircraftHex, setSelectedAircraftHex] = useState<string | null>(null);
 
   const flyingAircraft = aircraftPositions.filter(a => a.isSchoolAircraft && a.altitudeFt > 0);
   const baseMetar = metarReports.find(m => m.station === "KDHN")!;
@@ -105,27 +106,58 @@ export default function LiveMapPage() {
                   r.aircraftId === ac.aircraftId && r.status === "dispatched"
                 );
                 const student = matchingRes ? users.find(u => u.id === matchingRes.studentId) : null;
+                const isSelected = selectedAircraftHex === ac.icaoHex;
+                const manifest = matchingRes
+                  ? passengerManifests.filter(pm => pm.reservationId === matchingRes.id)
+                  : [];
+                const totalWeight = manifest.reduce((sum, pm) => sum + (pm.weightLbs ?? 0), 0);
 
                 return (
                   <Card
                     key={ac.icaoHex}
-                    className="shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => handleSnapToAircraft(ac)}
+                    className={`shrink-0 cursor-pointer hover:border-primary/50 transition-colors ${isSelected ? "border-primary ring-1 ring-primary/30" : ""}`}
+                    onClick={() => {
+                      handleSnapToAircraft(ac);
+                      setSelectedAircraftHex(isSelected ? null : ac.icaoHex);
+                    }}
                   >
-                    <CardContent className="p-3 flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <Plane className="h-4 w-4 text-blue-500" />
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Plane className="h-4 w-4 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold">{ac.tailNumber ?? ac.callsign}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {ac.altitudeFt.toLocaleString()}ft | {ac.groundSpeedKts}kts | {ac.headingDeg}&deg;
+                          </p>
+                          {student && <p className="text-xs text-muted-foreground">{student.fullName}</p>}
+                        </div>
+                        <Badge variant="outline" className="text-xs ml-2">
+                          {matchingRes ? "On Schedule" : "Flying"}
+                        </Badge>
+                        {manifest.length > 0 && (
+                          isSelected
+                            ? <ChevronUp className="h-3 w-3 text-muted-foreground ml-1" />
+                            : <ChevronDown className="h-3 w-3 text-muted-foreground ml-1" />
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold">{ac.tailNumber ?? ac.callsign}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {ac.altitudeFt.toLocaleString()}ft | {ac.groundSpeedKts}kts | {ac.headingDeg}&deg;
-                        </p>
-                        {student && <p className="text-xs text-muted-foreground">{student.fullName}</p>}
-                      </div>
-                      <Badge variant="outline" className="text-xs ml-2">
-                        {matchingRes ? "On Schedule" : "Flying"}
-                      </Badge>
+                      {isSelected && manifest.length > 0 && (
+                        <div className="mt-3 border-t pt-2 space-y-1.5">
+                          <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                            <Users className="h-3 w-3" />
+                            Passenger Manifest
+                          </div>
+                          {manifest.map((pm) => (
+                            <ManifestRow key={pm.id} entry={pm} />
+                          ))}
+                          {totalWeight > 0 && (
+                            <div className="text-xs font-semibold text-right pt-1 border-t">
+                              Total: {totalWeight} lbs
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
@@ -163,5 +195,29 @@ function MetarCard({ metar, expanded, onToggle }: { metar: MetarReport; expanded
         </div>
       )}
     </button>
+  );
+}
+
+const positionLabels: Record<PassengerManifest["position"], string> = {
+  pic: "PIC",
+  sic: "SIC",
+  pax_1: "PAX 1",
+  pax_2: "PAX 2",
+  pax_3: "PAX 3",
+};
+
+function ManifestRow({ entry }: { entry: PassengerManifest }) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center gap-2">
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-mono">
+          {positionLabels[entry.position]}
+        </Badge>
+        <span>{entry.name}</span>
+      </div>
+      {entry.weightLbs != null && (
+        <span className="text-muted-foreground">{entry.weightLbs} lbs</span>
+      )}
+    </div>
   );
 }

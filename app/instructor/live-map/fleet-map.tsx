@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { base, aircraftPositions } from "@/lib/mock-data";
+import { base, aircraftPositions, geofences } from "@/lib/mock-data";
 
 interface Props {
   centerOn: [number, number] | null;
@@ -29,7 +29,7 @@ export default function FleetMap({ centerOn }: Props) {
     map.current.on("load", () => {
       setLoaded(true);
       addMarkers();
-      addGeofence();
+      addGeofences();
     });
 
     return () => {
@@ -99,46 +99,84 @@ export default function FleetMap({ centerOn }: Props) {
     });
   }
 
-  function addGeofence() {
+  function addGeofences() {
     if (!map.current) return;
 
-    // 50NM radius circle (approximate)
     const nmToKm = 1.852;
-    const radiusNm = 50;
-    const radiusKm = radiusNm * nmToKm;
-    const points = 64;
-    const coords: [number, number][] = [];
+    const circlePoints = 64;
 
-    for (let i = 0; i <= points; i++) {
-      const angle = (i / points) * 2 * Math.PI;
-      const dx = radiusKm * Math.cos(angle);
-      const dy = radiusKm * Math.sin(angle);
-      const lat = base.latitude + (dy / 111.32);
-      const lng = base.longitude + (dx / (111.32 * Math.cos(base.latitude * Math.PI / 180)));
-      coords.push([lng, lat]);
-    }
+    geofences.forEach((gf, idx) => {
+      let coords: [number, number][];
+      let labelLng: number;
+      let labelLat: number;
 
-    map.current.addSource("geofence", {
-      type: "geojson",
-      data: {
-        type: "Feature",
-        properties: {},
-        geometry: { type: "Polygon", coordinates: [coords] },
-      },
-    });
+      if (gf.kind === "circle" && gf.centerLat != null && gf.centerLng != null && gf.radiusNm != null) {
+        const radiusKm = gf.radiusNm * nmToKm;
+        coords = [];
+        for (let i = 0; i <= circlePoints; i++) {
+          const angle = (i / circlePoints) * 2 * Math.PI;
+          const dx = radiusKm * Math.cos(angle);
+          const dy = radiusKm * Math.sin(angle);
+          const lat = gf.centerLat + (dy / 111.32);
+          const lng = gf.centerLng + (dx / (111.32 * Math.cos(gf.centerLat * Math.PI / 180)));
+          coords.push([lng, lat]);
+        }
+        labelLng = gf.centerLng;
+        labelLat = gf.centerLat + (radiusKm / 111.32) * 0.85; // label near top of circle
+      } else if (gf.kind === "polygon" && gf.geometry) {
+        // geometry is [lat, lng][] — convert to [lng, lat][] for GeoJSON
+        coords = gf.geometry.map(([lat, lng]) => [lng, lat] as [number, number]);
+        // Close the polygon ring
+        const first = coords[0];
+        const last = coords[coords.length - 1];
+        if (first && last && (first[0] !== last[0] || first[1] !== last[1])) {
+          coords.push([...first] as [number, number]);
+        }
+        labelLng = gf.centerLng ?? coords.reduce((s, c) => s + c[0], 0) / (coords.length - 1);
+        labelLat = gf.centerLat ?? coords.reduce((s, c) => s + c[1], 0) / (coords.length - 1);
+      } else {
+        return; // invalid geofence, skip
+      }
 
-    map.current.addLayer({
-      id: "geofence-fill",
-      type: "fill",
-      source: "geofence",
-      paint: { "fill-color": "#3b82f6", "fill-opacity": 0.05 },
-    });
+      const isRestricted = gf.label.toLowerCase().includes("restrict");
+      const color = isRestricted ? "#ef4444" : "#3b82f6";
+      const sourceId = `geofence-${idx}`;
 
-    map.current.addLayer({
-      id: "geofence-border",
-      type: "line",
-      source: "geofence",
-      paint: { "line-color": "#3b82f6", "line-width": 1.5, "line-dasharray": [4, 4], "line-opacity": 0.5 },
+      map.current!.addSource(sourceId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: { label: gf.label },
+          geometry: { type: "Polygon", coordinates: [coords] },
+        },
+      });
+
+      map.current!.addLayer({
+        id: `${sourceId}-fill`,
+        type: "fill",
+        source: sourceId,
+        paint: { "fill-color": color, "fill-opacity": isRestricted ? 0.1 : 0.05 },
+      });
+
+      map.current!.addLayer({
+        id: `${sourceId}-border`,
+        type: "line",
+        source: sourceId,
+        paint: {
+          "line-color": color,
+          "line-width": 1.5,
+          "line-dasharray": isRestricted ? [2, 2] : [4, 4],
+          "line-opacity": isRestricted ? 0.7 : 0.5,
+        },
+      });
+
+      // Label marker
+      const labelEl = document.createElement("div");
+      labelEl.style.cssText = `color:${color};font-size:10px;font-weight:600;white-space:nowrap;text-shadow:0 0 4px rgba(0,0,0,0.9);pointer-events:none`;
+      labelEl.textContent = gf.label;
+      new maplibregl.Marker({ element: labelEl, anchor: "center" })
+        .setLngLat([labelLng, labelLat])
+        .addTo(map.current!);
     });
   }
 

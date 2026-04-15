@@ -557,3 +557,66 @@ export interface WeatherWarning {
   severity: "moderate" | "severe";
   expiresAt: string;
 }
+
+// ── Geofences ─────────────────────────────────────────
+
+export interface Geofence {
+  id: string;
+  schoolId: string;
+  baseId: string;
+  kind: "circle" | "polygon";
+  label: string;
+  radiusNm: number | null;
+  geometry: [number, number][] | null; // lat/lng pairs for polygon
+  centerLat: number | null;
+  centerLng: number | null;
+}
+
+// ── Passenger Manifest ────────────────────────────────
+
+export interface PassengerManifest {
+  id: string;
+  reservationId: string;
+  position: "pic" | "sic" | "pax_1" | "pax_2" | "pax_3";
+  name: string;
+  weightLbs: number | null;
+  notes: string | null;
+}
+
+// ── Schedule Blocks ───────────────────────────────────
+
+export interface ScheduleBlock {
+  id: string;
+  schoolId: string;
+  kind: "instructor" | "aircraft" | "room";
+  instructorId: string | null;
+  aircraftId: string | null;
+  roomId: string | null;
+  validFrom: string;
+  validUntil: string | null;
+  notes: string | null;
+}
+
+export interface ScheduleBlockInstance {
+  id: string;
+  blockId: string;
+  startTime: string;
+  endTime: string;
+}
+
+// ── Aircraft Engine & Equipment ───────────────────────
+
+export interface AircraftEngine {
+  id: string;
+  aircraftId: string;
+  position: "left" | "right" | "center" | "single";
+  serialNumber: string | null;
+  manufacturer: string | null;
+  model: string | null;
+}
+
+export interface AircraftEquipment {
+  id: string;
+  aircraftId: string;
+  tag: string; // e.g., "g1000", "ifr_certified", "autopilot", "steam_gauges"
+}

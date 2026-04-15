@@ -22,10 +22,26 @@ import {
   reservationStatusLabels,
   users,
   userRoles,
+  scheduleBlocks,
+  scheduleBlockInstances,
+  aircraftEngines,
+  aircraftEquipment,
 } from "@/lib/mock-data";
 import type { Reservation, ReservationActivityType } from "@/lib/types";
 
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 6); // 6am - 9pm
+
+function formatTag(tag: string): string {
+  return tag.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function getAvailabilityInstances(resourceId: string, resourceType: "aircraft" | "room") {
+  const matchingBlocks = scheduleBlocks.filter(b =>
+    resourceType === "aircraft" ? b.aircraftId === resourceId : b.roomId === resourceId
+  );
+  const blockIds = new Set(matchingBlocks.map(b => b.id));
+  return scheduleBlockInstances.filter(inst => blockIds.has(inst.blockId));
+}
 
 const studentUsers = users.filter(u => {
   const role = userRoles.find(r => r.userId === u.id);
@@ -86,8 +102,8 @@ export default function SchoolSchedulePage() {
   const viewDays = view === "day" ? [dayStart] : Array.from({ length: 5 }, (_, i) => addDays(weekStart, i));
 
   const allResources = [
-    ...rooms.map(r => ({ id: r.id, type: "room" as const, name: r.name, subtitle: `Cap: ${r.capacity}`, icon: DoorOpen })),
-    ...aircraft.filter(a => !a.groundedAt).map(a => ({ id: a.id, type: "aircraft" as const, name: a.tailNumber, subtitle: `${a.make} ${a.model}`, icon: Plane })),
+    ...rooms.map(r => ({ id: r.id, type: "room" as const, name: r.name, subtitle: `Cap: ${r.capacity}`, icon: DoorOpen, features: r.features })),
+    ...aircraft.filter(a => !a.groundedAt).map(a => ({ id: a.id, type: "aircraft" as const, name: a.tailNumber, subtitle: `${a.make} ${a.model}`, icon: Plane, features: null as string[] | null })),
   ];
 
   function getEventsForResource(resourceId: string, type: "aircraft" | "room") {
@@ -272,13 +288,45 @@ export default function SchoolSchedulePage() {
                     <div>
                       <p className="text-sm font-medium">{resource.name}</p>
                       <p className="text-xs text-muted-foreground">{resource.subtitle}</p>
+                      {resource.features && resource.features.length > 0 && (
+                        <div className="flex flex-wrap gap-0.5 mt-0.5">
+                          {resource.features.map(f => (
+                            <span key={f} className="inline-block text-[9px] px-1 py-0 rounded bg-muted text-muted-foreground leading-tight">
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
-                {viewDays.map(day => (
+                {viewDays.map(day => {
+                  const availInstances = getAvailabilityInstances(resource.id, resource.type);
+                  return (
                   <div key={day.toISOString()} className="flex-1 relative h-12">
+                    {/* Availability bands (behind events) */}
+                    {availInstances
+                      .filter(inst => isSameDay(new Date(inst.startTime), day))
+                      .map(inst => {
+                        const instStart = new Date(inst.startTime);
+                        const instEnd = new Date(inst.endTime);
+                        const startHour = instStart.getHours() + instStart.getMinutes() / 60;
+                        const endHour = instEnd.getHours() + instEnd.getMinutes() / 60;
+                        const clampedStart = Math.max(startHour, 6);
+                        const clampedEnd = Math.min(endHour, 22);
+                        const left = ((clampedStart - 6) / 16) * 100;
+                        const width = ((clampedEnd - clampedStart) / 16) * 100;
+                        return (
+                          <div
+                            key={inst.id}
+                            className="absolute top-0 h-full bg-green-500/10 z-0 pointer-events-none"
+                            style={{ left: `${left}%`, width: `${width}%` }}
+                            title="Available"
+                          />
+                        );
+                      })}
                     {/* Clickable empty time blocks */}
-                    <div className="flex h-full">
+                    <div className="flex h-full relative z-[1]">
                       {HOURS.map(h => (
                         <button
                           key={h}
@@ -320,7 +368,8 @@ export default function SchoolSchedulePage() {
                         );
                       })}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })}
@@ -337,14 +386,46 @@ export default function SchoolSchedulePage() {
                 <SheetTitle>{"tailNumber" in selected ? (selected as typeof aircraft[0]).tailNumber : (selected as typeof rooms[0]).name}</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4">
-                {"tailNumber" in selected ? (
-                  <div className="space-y-2 text-sm">
-                    <Row label="Make/Model" value={`${(selected as typeof aircraft[0]).make} ${(selected as typeof aircraft[0]).model}`} />
-                    <Row label="Year" value={String((selected as typeof aircraft[0]).year)} />
-                    <Row label="Equipment" value={(selected as typeof aircraft[0]).equipmentNotes ?? "\u2014"} />
-                    <Row label="Status" value={(selected as typeof aircraft[0]).groundedAt ? "Grounded" : "Airworthy"} />
+                {"tailNumber" in selected ? (() => {
+                  const ac = selected as typeof aircraft[0];
+                  const engines = aircraftEngines.filter(e => e.aircraftId === ac.id);
+                  const equipment = aircraftEquipment.filter(e => e.aircraftId === ac.id);
+                  return (
+                  <div className="space-y-3 text-sm">
+                    <div className="space-y-2">
+                      <Row label="Make/Model" value={`${ac.make} ${ac.model}`} />
+                      <Row label="Year" value={String(ac.year)} />
+                      <Row label="Equipment Notes" value={ac.equipmentNotes ?? "\u2014"} />
+                      <Row label="Status" value={ac.groundedAt ? "Grounded" : "Airworthy"} />
+                    </div>
+                    {engines.length > 0 && (
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Engine{engines.length > 1 ? "s" : ""}</h4>
+                        {engines.map(eng => (
+                          <div key={eng.id} className="p-2 rounded-md bg-muted/50 space-y-0.5">
+                            <p className="font-medium">{eng.manufacturer} {eng.model}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Position: {eng.position}{eng.serialNumber ? ` | S/N: ${eng.serialNumber}` : ""}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {equipment.length > 0 && (
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Equipment</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {equipment.map(eq => (
+                            <Badge key={eq.id} variant="secondary" className="text-xs">
+                              {formatTag(eq.tag)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ) : (
+                  );
+                })() : (
                   <div className="space-y-2 text-sm">
                     <Row label="Capacity" value={String((selected as typeof rooms[0]).capacity ?? "\u2014")} />
                     <Row label="Features" value={(selected as typeof rooms[0]).features?.join(", ") ?? "\u2014"} />

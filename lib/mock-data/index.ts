@@ -10,6 +10,8 @@ import type {
   TestGrade, PersonHold, Document, InfoReleaseAuthorization,
   LessonOverride, NoShow, FifNotice, FifAcknowledgement,
   StudentProgressForecast, TrainingRecordAuditException,
+  ScheduleBlock, ScheduleBlockInstance, AircraftEngine, AircraftEquipment,
+  Geofence, PassengerManifest,
 } from "@/lib/types";
 import { addDays, addHours, format, subDays, startOfWeek } from "date-fns";
 
@@ -499,4 +501,111 @@ export const reservationStatusLabels: Record<string, string> = {
   no_show: "No Show",
   scrubbed: "Scrubbed",
 };
+
+// ── Dispatched Reservations (currently flying) ────────
+export const dispatchedReservationN172SP = resId();
+export const dispatchedReservationN28PA = resId();
+
+// Add dispatched reservations for flying aircraft
+reservations.push(
+  { id: dispatchedReservationN172SP, schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(now, -1)), endTime: iso(addHours(now, 1)), status: "dispatched", aircraftId: IDS.aircraftN172SP, instructorId: IDS.instructorMike, studentId: IDS.studentAlex, roomId: null, notes: "Practice area - ground reference maneuvers", lessonId: null },
+  { id: dispatchedReservationN28PA, schoolId: IDS.school, baseId: IDS.base, activityType: "flight", startTime: iso(addHours(now, -1)), endTime: iso(addHours(now, 1.5)), status: "dispatched", aircraftId: IDS.aircraftN28PA, instructorId: IDS.instructorSarah, studentId: IDS.studentOlivia, roomId: null, notes: "Stall series and slow flight", lessonId: null },
+);
+
+// ── Geofences ─────────────────────────────────────────
+export const geofences: Geofence[] = [
+  {
+    id: "gf-01",
+    schoolId: IDS.school,
+    baseId: IDS.base,
+    kind: "circle",
+    label: "Training Area",
+    radiusNm: 50,
+    geometry: null,
+    centerLat: base.latitude,
+    centerLng: base.longitude,
+  },
+  {
+    id: "gf-02",
+    schoolId: IDS.school,
+    baseId: IDS.base,
+    kind: "polygon",
+    label: "R-2907 Restricted (Ft Novosel)",
+    radiusNm: null,
+    geometry: [
+      [31.38, -85.72],
+      [31.38, -85.58],
+      [31.28, -85.58],
+      [31.28, -85.72],
+    ],
+    centerLat: 31.33,
+    centerLng: -85.65,
+  },
+];
+
+// ── Passenger Manifests ───────────────────────────────
+export const passengerManifests: PassengerManifest[] = [
+  // N172SP - Mike (PIC) + Alex (student)
+  { id: "pm-01", reservationId: dispatchedReservationN172SP, position: "pic", name: "Mike Reynolds", weightLbs: 185, notes: "CFI" },
+  { id: "pm-02", reservationId: dispatchedReservationN172SP, position: "sic", name: "Alex Martinez", weightLbs: 165, notes: "Student PIC" },
+  { id: "pm-03", reservationId: dispatchedReservationN172SP, position: "pax_1", name: "Dan Garcia", weightLbs: 195, notes: "Observer ride-along" },
+  // N28PA - Sarah (PIC) + Olivia (student)
+  { id: "pm-04", reservationId: dispatchedReservationN28PA, position: "pic", name: "Sarah Chen", weightLbs: 140, notes: "CFI" },
+  { id: "pm-05", reservationId: dispatchedReservationN28PA, position: "sic", name: "Olivia Brown", weightLbs: 130, notes: "Student" },
+];
+
+// ── Schedule Blocks ───────────────────────────────────
+
+export const scheduleBlocks: ScheduleBlock[] = [
+  { id: "sblock-01", schoolId: IDS.school, kind: "aircraft", instructorId: null, aircraftId: IDS.aircraftN172SP, roomId: null, validFrom: "2024-01-01", validUntil: null, notes: "N172SP available Mon-Fri 7am-7pm" },
+  { id: "sblock-02", schoolId: IDS.school, kind: "aircraft", instructorId: null, aircraftId: IDS.aircraftN152AB, roomId: null, validFrom: "2024-01-01", validUntil: null, notes: "N152AB available Mon-Sat 6am-8pm" },
+  { id: "sblock-03", schoolId: IDS.school, kind: "aircraft", instructorId: null, aircraftId: IDS.aircraftN28PA, roomId: null, validFrom: "2024-01-01", validUntil: null, notes: "N28PA available Mon-Fri 7am-6pm" },
+  { id: "sblock-04", schoolId: IDS.school, kind: "room", instructorId: null, aircraftId: null, roomId: IDS.roomBriefingA, validFrom: "2024-01-01", validUntil: null, notes: "Briefing Room A available Mon-Sat 6am-9pm" },
+  { id: "sblock-05", schoolId: IDS.school, kind: "room", instructorId: null, aircraftId: null, roomId: IDS.roomClassroomB, validFrom: "2024-01-01", validUntil: null, notes: "Classroom B available Mon-Fri 8am-5pm" },
+];
+
+const blockWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+
+export const scheduleBlockInstances: ScheduleBlockInstance[] = [
+  // N172SP: Mon-Fri 7am-7pm
+  { id: "sbinst-01", blockId: "sblock-01", startTime: iso(addHours(addDays(blockWeekStart, 0), 7)), endTime: iso(addHours(addDays(blockWeekStart, 0), 19)) },
+  { id: "sbinst-02", blockId: "sblock-01", startTime: iso(addHours(addDays(blockWeekStart, 1), 7)), endTime: iso(addHours(addDays(blockWeekStart, 1), 19)) },
+  // N152AB: Mon-Sat 6am-8pm
+  { id: "sbinst-03", blockId: "sblock-02", startTime: iso(addHours(addDays(blockWeekStart, 0), 6)), endTime: iso(addHours(addDays(blockWeekStart, 0), 20)) },
+  { id: "sbinst-04", blockId: "sblock-02", startTime: iso(addHours(addDays(blockWeekStart, 1), 6)), endTime: iso(addHours(addDays(blockWeekStart, 1), 20)) },
+  // N28PA: Mon-Fri 7am-6pm
+  { id: "sbinst-05", blockId: "sblock-03", startTime: iso(addHours(addDays(blockWeekStart, 0), 7)), endTime: iso(addHours(addDays(blockWeekStart, 0), 18)) },
+  // Briefing Room A: Mon-Sat 6am-9pm
+  { id: "sbinst-06", blockId: "sblock-04", startTime: iso(addHours(addDays(blockWeekStart, 0), 6)), endTime: iso(addHours(addDays(blockWeekStart, 0), 21)) },
+  { id: "sbinst-07", blockId: "sblock-04", startTime: iso(addHours(addDays(blockWeekStart, 1), 6)), endTime: iso(addHours(addDays(blockWeekStart, 1), 21)) },
+  // Classroom B: Mon-Fri 8am-5pm
+  { id: "sbinst-08", blockId: "sblock-05", startTime: iso(addHours(addDays(blockWeekStart, 0), 8)), endTime: iso(addHours(addDays(blockWeekStart, 0), 17)) },
+];
+
+// ── Aircraft Engines ──────────────────────────────────
+
+export const aircraftEngines: AircraftEngine[] = [
+  { id: "eng-01", aircraftId: IDS.aircraftN172SP, position: "single", serialNumber: "L-28456-51A", manufacturer: "Lycoming", model: "IO-360-L2A" },
+  { id: "eng-02", aircraftId: IDS.aircraftN152AB, position: "single", serialNumber: "L-15789-40A", manufacturer: "Lycoming", model: "O-235-L2C" },
+  { id: "eng-03", aircraftId: IDS.aircraftN28PA, position: "single", serialNumber: "L-32100-51A", manufacturer: "Lycoming", model: "O-360-A4M" },
+  { id: "eng-04", aircraftId: IDS.aircraftN182RG, position: "single", serialNumber: "L-44521-52A", manufacturer: "Lycoming", model: "O-540-J3C5D" },
+  { id: "eng-05l", aircraftId: IDS.aircraftN44ME, position: "left", serialNumber: "L-51200-61A", manufacturer: "Lycoming", model: "O-360-A1H6" },
+  { id: "eng-05r", aircraftId: IDS.aircraftN44ME, position: "right", serialNumber: "L-51201-61A", manufacturer: "Lycoming", model: "O-360-A1H6" },
+];
+
+// ── Aircraft Equipment ────────────────────────────────
+
+export const aircraftEquipment: AircraftEquipment[] = [
+  { id: "equip-01", aircraftId: IDS.aircraftN172SP, tag: "g1000" },
+  { id: "equip-02", aircraftId: IDS.aircraftN172SP, tag: "ifr_certified" },
+  { id: "equip-03", aircraftId: IDS.aircraftN172SP, tag: "autopilot" },
+  { id: "equip-04", aircraftId: IDS.aircraftN152AB, tag: "steam_gauges" },
+  { id: "equip-05", aircraftId: IDS.aircraftN152AB, tag: "vfr_only" },
+  { id: "equip-06", aircraftId: IDS.aircraftN28PA, tag: "gtn_650" },
+  { id: "equip-07", aircraftId: IDS.aircraftN28PA, tag: "ifr_certified" },
+  { id: "equip-08", aircraftId: IDS.aircraftN28PA, tag: "autopilot" },
+  { id: "equip-09", aircraftId: IDS.aircraftN44ME, tag: "g500_txi" },
+  { id: "equip-10", aircraftId: IDS.aircraftN44ME, tag: "ifr_certified" },
+  { id: "equip-11", aircraftId: IDS.aircraftN44ME, tag: "multi_engine" },
+];
 
