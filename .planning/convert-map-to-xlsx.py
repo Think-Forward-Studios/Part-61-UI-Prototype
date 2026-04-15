@@ -213,6 +213,186 @@ def write_sheet(ws, section):
         ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
 
 
+def write_instructions_sheet(wb):
+    """Create the first tab with legend, instructions, and reading guide."""
+    ws = wb.create_sheet(title="Instructions & Legend", index=0)
+
+    # ── Title ──
+    row = 1
+    cell = ws.cell(row=row, column=1, value="UI \u2194 Database Connection Map")
+    cell.font = Font(bold=True, size=18, color="1F4E79")
+    ws.merge_cells("A1:D1")
+    row += 1
+    cell = ws.cell(row=row, column=1, value="TFS Flight School \u2014 Part 61 Prototype")
+    cell.font = Font(italic=True, size=12, color="808080")
+    ws.merge_cells("A2:D2")
+    row += 2
+
+    # ── Purpose ──
+    cell = ws.cell(row=row, column=1, value="What is this document?")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+    purpose_lines = [
+        "This workbook tracks every connection between the UI prototype and the database schema.",
+        "It maps each visible element in the prototype to its corresponding database table and column,",
+        "showing what's ready to wire, what's still using mock data, and what gaps exist.",
+        "",
+        "This is a LIVING DOCUMENT \u2014 it updates automatically when the UI or DB schema changes.",
+        "An automated agent scans both codebases and pushes updates via GitHub Actions.",
+    ]
+    for line in purpose_lines:
+        ws.cell(row=row, column=1, value=line).font = Font(size=11)
+        row += 1
+    row += 1
+
+    # ── How to read ──
+    cell = ws.cell(row=row, column=1, value="How to Read Each Tab")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+    reading_lines = [
+        ("Tab structure:", "Each tab represents one page or major section of the UI prototype."),
+        ("Tables within tabs:", "Each table maps a UI subsection (e.g., 'Event Detail Sheet', 'Demographics Tab')."),
+        ("Column: UI Element", "The visible field, button, badge, or data point shown in the prototype."),
+        ("Column: DB Table.Column", "The database table and column that should provide the data (e.g., users.full_name)."),
+        ("Column: Status", "Color-coded connection status \u2014 see Legend below."),
+        ("Column: DB Operation", "For action items: INSERT, UPDATE, DELETE, or the query logic needed."),
+        ("'DB Columns NOT in UI'", "Tables at the bottom of each tab listing database columns that exist but aren't shown yet."),
+    ]
+    for label, desc in reading_lines:
+        ws.cell(row=row, column=1, value=label).font = Font(bold=True, size=11)
+        ws.cell(row=row, column=2, value=desc).font = Font(size=11)
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
+        row += 1
+    row += 1
+
+    # ── Status Legend ──
+    cell = ws.cell(row=row, column=1, value="Status Legend")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+
+    legend_items = [
+        ("READY", STATUS_FILLS["READY"],
+         "UI field has a matching DB column. Ready to wire up in code."),
+        ("PENDING", STATUS_FILLS["PENDING"],
+         "UI field exists but uses hardcoded/mock data. The DB column exists \u2014 connection just needs to be built."),
+        ("NO DB COLUMN", STATUS_FILLS["NO DB COLUMN"],
+         "UI shows this field but NO database column exists for it yet. Needs schema work or a design decision."),
+        ("NOT IN UI", STATUS_FILLS["NOT IN UI"],
+         "Database column exists but is NOT shown anywhere in the prototype. May need a UI surface in the future."),
+        ("DERIVED", STATUS_FILLS["DERIVED"],
+         "Computed or derived value. Requires a query/calculation, not a direct column lookup (e.g., COUNT, SUM, date math)."),
+    ]
+
+    # Header
+    for ci, h in enumerate(["Status", "Color", "Meaning"]):
+        cell = ws.cell(row=row, column=ci + 1, value=h)
+        cell.fill = HEADER_FILL
+        cell.font = HEADER_FONT
+        cell.alignment = Alignment(horizontal="center")
+        cell.border = THIN_BORDER
+    row += 1
+
+    for label, fill, meaning in legend_items:
+        ws.cell(row=row, column=1, value=label).font = Font(bold=True, size=11)
+        ws.cell(row=row, column=1).border = THIN_BORDER
+        color_cell = ws.cell(row=row, column=2, value="")
+        color_cell.fill = fill
+        color_cell.border = THIN_BORDER
+        meaning_cell = ws.cell(row=row, column=3, value=meaning)
+        meaning_cell.font = Font(size=11)
+        meaning_cell.alignment = Alignment(wrap_text=True)
+        meaning_cell.border = THIN_BORDER
+        row += 1
+    row += 1
+
+    # ── Key Concepts ──
+    cell = ws.cell(row=row, column=1, value="Key Concepts")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+    concepts = [
+        ("Part 61 School", "A flight school operating under FAA Part 61 rules (not Part 141). Training is instructor-customized, not FAA-approved curriculum."),
+        ("RLS (Row-Level Security)", "Database enforces that users can only see data belonging to their school. Every query is automatically scoped."),
+        ("Soft Delete", "Safety-relevant records are never permanently deleted. They get a deleted_at timestamp instead."),
+        ("Enrollment Chain", "Student \u2192 Enrollment \u2192 Course Version \u2192 Course. A student is enrolled in a specific version of a course."),
+        ("Grade Sheet", "The record of a completed lesson. 'Sealed' means finalized and locked for audit."),
+        ("Reservation", "A scheduled event (flight, ground, sim, etc.) linking student + instructor + resource + time."),
+        ("FIF Notice", "Flight Information Facility notice \u2014 school-wide announcements that require instructor acknowledgement."),
+    ]
+    for label, desc in concepts:
+        ws.cell(row=row, column=1, value=label).font = Font(bold=True, size=11)
+        ws.cell(row=row, column=2, value=desc).font = Font(size=11)
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
+        ws.cell(row=row, column=2).alignment = Alignment(wrap_text=True)
+        row += 1
+    row += 1
+
+    # ── Summary Stats ──
+    cell = ws.cell(row=row, column=1, value="Quick Stats")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+    stats = [
+        ("DB tables with UI representation", "~38"),
+        ("DB tables with NO UI yet", "9"),
+        ("UI elements with NO DB column", "11"),
+        ("Enum types fully aligned", "17 of 19"),
+        ("Last automated scan", "See individual tab headers"),
+    ]
+    for label, val in stats:
+        ws.cell(row=row, column=1, value=label).font = Font(size=11)
+        ws.cell(row=row, column=2, value=val).font = Font(bold=True, size=11)
+        row += 1
+    row += 1
+
+    # ── Tab Directory ──
+    cell = ws.cell(row=row, column=1, value="Tab Directory")
+    cell.font = Font(bold=True, size=13, color="1F4E79")
+    row += 1
+
+    tabs = [
+        ("1. Landing Page", "Public-facing landing page: login, school branding, prospective students"),
+        ("2. Instructor Dashboard Shell", "Top bar, profile dropdown, navigation \u2014 shared across all instructor pages"),
+        ("3. Schedule Tab", "Instructor's personal schedule: calendar events, add training dialog, blockout times, availability"),
+        ("4. Students Tab", "Student roster list with filters, status badges, progress indicators"),
+        ("5. Student Detail", "Individual student: demographics, progress, endorsements, tests, stage checks, overrides, sessions"),
+        ("6. School Schedule", "School-wide resource grid: aircraft + room time blocks with event interactions"),
+        ("7. Live Map", "Real-time aircraft positions, base marker, geofence, weather data"),
+        ("8. Maintenance", "Fleet status, due items, squawks, work orders"),
+        ("9. Support", "Support ticket form and contact information"),
+        ("10. FIF Notice Banner", "Flight Information Facility notices shown across all instructor pages"),
+        ("Summary \u2014 Gap Analysis", "Consolidated view: all red gaps, yellow gaps, coverage metrics"),
+        ("Enum Alignment Check", "Verifies UI enum values match database enum definitions exactly"),
+    ]
+
+    for ci, h in enumerate(["Tab", "Description"]):
+        cell = ws.cell(row=row, column=ci + 1, value=h)
+        cell.fill = HEADER_FILL
+        cell.font = HEADER_FONT
+        cell.alignment = Alignment(horizontal="center")
+        cell.border = THIN_BORDER
+    row += 1
+
+    for tab_name, desc in tabs:
+        ws.cell(row=row, column=1, value=tab_name).font = Font(bold=True, size=11)
+        ws.cell(row=row, column=1).border = THIN_BORDER
+        desc_cell = ws.cell(row=row, column=2, value=desc)
+        desc_cell.font = Font(size=11)
+        desc_cell.alignment = Alignment(wrap_text=True)
+        desc_cell.border = THIN_BORDER
+        ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=4)
+        row += 1
+    row += 1
+
+    # ── Footer ──
+    ws.cell(row=row, column=1, value="This document is maintained by an automated agent. Do not edit directly \u2014 changes will be overwritten on next sync.").font = Font(italic=True, size=10, color="808080")
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+
+    # Column widths
+    ws.column_dimensions["A"].width = 30
+    ws.column_dimensions["B"].width = 50
+    ws.column_dimensions["C"].width = 50
+    ws.column_dimensions["D"].width = 20
+
+
 def main():
     with open(MD_PATH, "r") as f:
         md_text = f.read()
@@ -222,6 +402,9 @@ def main():
 
     # Remove default sheet
     wb.remove(wb.active)
+
+    # Instructions & Legend as first tab
+    write_instructions_sheet(wb)
 
     for section in sections:
         # Sheet name (max 31 chars, no invalid chars)

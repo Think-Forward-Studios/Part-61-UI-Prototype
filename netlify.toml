@@ -7,7 +7,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  GATE_PASSWORD = "flightschool2026"
+  # GATE_PASSWORD is set in Netlify dashboard (Environment Variables) — not in code
 
 # Security headers
 [[headers]]
