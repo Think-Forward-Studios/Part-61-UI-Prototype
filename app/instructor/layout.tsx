@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useState, useMemo } from "react";
 import { Calendar, Users, CalendarDays, Map, Wrench, HelpCircle, LogOut, User, Clock, FileText, Lock, Settings, AlertTriangle, X, CheckCircle, LayoutDashboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { fifNotices, fifAcknowledgements } from "@/lib/mock-data";
+import { fifNotices, fifAcknowledgements, users, base } from "@/lib/mock-data";
+import { format } from "date-fns";
 import { IDS } from "@/lib/mock-data/ids";
 import { TFSBadge } from "@/components/tfs-badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -173,6 +174,14 @@ function FifBanner({ userId }: { userId: string }) {
               <p className={`text-xs text-muted-foreground mt-0.5 ${expanded.has(notice.id) ? "" : "line-clamp-1"}`}>{notice.body}</p>
               {expanded.has(notice.id) && notice.expiresAt && (
                 <p className="text-[10px] text-muted-foreground mt-1">Expires: {new Date(notice.expiresAt).toLocaleDateString()}</p>
+              )}
+              {expanded.has(notice.id) && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Posted {format(new Date(notice.postedAt), "MMM d, yyyy")}
+                  {notice.postedByUserId && (() => { const u = users.find(u => u.id === notice.postedByUserId); return u ? ` by ${u.fullName}` : ""; })()}
+                  {notice.effectiveAt && notice.effectiveAt !== notice.postedAt && ` | Effective: ${format(new Date(notice.effectiveAt), "MMM d, yyyy")}`}
+                  {notice.baseId && ` | Base: ${base.name}`}
+                </p>
               )}
             </button>
             <div className="flex items-center gap-1 shrink-0">

@@ -23,6 +23,7 @@ import {
   studentEndorsements, stageChecks, flightLogTimes, lineItemGrades,
   testGrades, personHolds, documents, infoReleaseAuthorizations,
   lessonOverrides, noShows, progressForecasts, auditExceptions, lineItems,
+  aircraft,
 } from "@/lib/mock-data";
 
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -67,6 +68,25 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const totalNight = studentFlightTime.reduce((sum, f) => sum + f.nightMinutes, 0);
   const totalLandings = studentFlightTime.reduce((sum, f) => sum + f.dayLandings + f.nightLandings, 0);
   const totalInstrument = studentFlightTime.reduce((sum, f) => sum + f.instrumentActualMinutes + f.instrumentSimulatedMinutes, 0);
+
+  // Simulator vs Aircraft split
+  const simFlightTime = studentFlightTime.filter(f => f.isSimulator);
+  const acftFlightTime = studentFlightTime.filter(f => !f.isSimulator);
+  const totalSimDual = simFlightTime.filter(f => f.kind === "dual_received").reduce((sum, f) => sum + f.dayMinutes + f.nightMinutes, 0);
+  const totalSimSolo = simFlightTime.filter(f => f.kind === "solo").reduce((sum, f) => sum + f.dayMinutes + f.nightMinutes, 0);
+  const totalSimXC = simFlightTime.reduce((sum, f) => sum + f.crossCountryMinutes, 0);
+  const totalSimNight = simFlightTime.reduce((sum, f) => sum + f.nightMinutes, 0);
+  const totalSimInstrument = simFlightTime.reduce((sum, f) => sum + f.instrumentActualMinutes + f.instrumentSimulatedMinutes, 0);
+  const totalSimLandings = simFlightTime.reduce((sum, f) => sum + f.dayLandings + f.nightLandings, 0);
+  const totalAcftDual = acftFlightTime.filter(f => f.kind === "dual_received").reduce((sum, f) => sum + f.dayMinutes + f.nightMinutes, 0);
+  const totalAcftSolo = acftFlightTime.filter(f => f.kind === "solo").reduce((sum, f) => sum + f.dayMinutes + f.nightMinutes, 0);
+  const totalAcftXC = acftFlightTime.reduce((sum, f) => sum + f.crossCountryMinutes, 0);
+  const totalAcftNight = acftFlightTime.reduce((sum, f) => sum + f.nightMinutes, 0);
+  const totalAcftInstrument = acftFlightTime.reduce((sum, f) => sum + f.instrumentActualMinutes + f.instrumentSimulatedMinutes, 0);
+  const totalAcftLandings = acftFlightTime.reduce((sum, f) => sum + f.dayLandings + f.nightLandings, 0);
+
+  // Instrument approaches count
+  const totalApproaches = studentFlightTime.reduce((sum, f) => sum + f.instrumentApproaches, 0);
 
   // Dialog states
   const [editDemographics, setEditDemographics] = useState(false);
@@ -333,18 +353,59 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           {studentFlightTime.length > 0 && (
             <Card>
               <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" />Flight Time Summary</CardTitle></CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
-                  <TimeBlock label="Dual" value={totalDual} />
-                  <TimeBlock label="Solo" value={totalSolo} />
-                  <TimeBlock label="Cross-Country" value={totalXC} />
-                  <TimeBlock label="Night" value={totalNight} />
-                  <TimeBlock label="Instrument" value={totalInstrument} />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Landings</p>
-                    <p className="text-lg font-semibold">{totalLandings}</p>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Totals</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 text-center">
+                    <TimeBlock label="Dual" value={totalDual} />
+                    <TimeBlock label="Solo" value={totalSolo} />
+                    <TimeBlock label="Cross-Country" value={totalXC} />
+                    <TimeBlock label="Night" value={totalNight} />
+                    <TimeBlock label="Instrument" value={totalInstrument} />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Landings</p>
+                      <p className="text-lg font-semibold">{totalLandings}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Approaches</p>
+                      <p className="text-lg font-semibold">{totalApproaches}</p>
+                    </div>
                   </div>
                 </div>
+                <Separator />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Aircraft</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+                    <TimeBlock label="Dual" value={totalAcftDual} />
+                    <TimeBlock label="Solo" value={totalAcftSolo} />
+                    <TimeBlock label="Cross-Country" value={totalAcftXC} />
+                    <TimeBlock label="Night" value={totalAcftNight} />
+                    <TimeBlock label="Instrument" value={totalAcftInstrument} />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Landings</p>
+                      <p className="text-lg font-semibold">{totalAcftLandings}</p>
+                    </div>
+                  </div>
+                </div>
+                {simFlightTime.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Simulator</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+                        <TimeBlock label="Dual" value={totalSimDual} />
+                        <TimeBlock label="Solo" value={totalSimSolo} />
+                        <TimeBlock label="Cross-Country" value={totalSimXC} />
+                        <TimeBlock label="Night" value={totalSimNight} />
+                        <TimeBlock label="Instrument" value={totalSimInstrument} />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Landings</p>
+                          <p className="text-lg font-semibold">{totalSimLandings}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}
@@ -397,6 +458,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                         <TableHead>Test</TableHead>
                         <TableHead>Score</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Recorded By</TableHead>
                         <TableHead>Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -410,6 +472,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                             {tg.score != null ? `${tg.score}/${tg.maxScore}` : "P"}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">{format(new Date(tg.recordedAt), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{users.find(u => u.id === tg.recordedByUserId)?.fullName ?? "—"}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{tg.remarks ?? "—"}</TableCell>
                         </TableRow>
                       ))}
@@ -571,6 +634,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                       <div className="flex-1">
                         <p className="text-xs text-muted-foreground">{format(new Date(ns.scheduledAt), "EEE, MMM d, yyyy")}</p>
                         <p className="text-xs">{ns.reason ?? "No reason provided"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {ns.instructorId ? `Instructor: ${users.find(u => u.id === ns.instructorId)?.fullName ?? "—"}` : ""}
+                          {ns.instructorId && ns.aircraftId ? " | " : ""}
+                          {ns.aircraftId ? `Aircraft: ${aircraft.find(a => a.id === ns.aircraftId)?.tailNumber ?? "—"}` : ""}
+                        </p>
                       </div>
                     </div>
                   ))}

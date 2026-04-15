@@ -251,6 +251,7 @@ export interface MaintenanceItem {
   nextDueAt: string | null;
   nextDueHours: number | null;
   status: MaintenanceItemStatus;
+  lastCompletedAt: string | null;
 }
 
 export interface AircraftSquawk {
@@ -265,6 +266,8 @@ export interface AircraftSquawk {
   openedAt: string;
   openedByUserId: string;
   resolvedAt: string | null;
+  deferredUntil: string | null;
+  deferralJustification: string | null;
 }
 
 export interface WorkOrder {
@@ -277,6 +280,10 @@ export interface WorkOrder {
   description: string | null;
   assignedToUserId: string | null;
   createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  signedOffAt: string | null;
+  signedOffByUserId: string | null;
 }
 
 // ── Instructor Currency ────────────────────────────────
