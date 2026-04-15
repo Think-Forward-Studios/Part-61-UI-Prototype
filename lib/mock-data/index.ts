@@ -185,10 +185,10 @@ export const lineItems: LineItem[] = [
 
 // ── Enrollments ────────────────────────────────────────
 export const enrollments: StudentCourseEnrollment[] = [
-  { id: IDS.enrollAlex, schoolId: IDS.school, userId: IDS.studentAlex, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2025-09-15T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "Progressing well through Stage 2" },
-  { id: IDS.enrollEmma, schoolId: IDS.school, userId: IDS.studentEmma, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2026-01-10T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "New student, started Stage 1" },
-  { id: IDS.enrollLiam, schoolId: IDS.school, userId: IDS.studentLiam, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorSarah, enrolledAt: "2025-06-01T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "In Stage 3, preparing for checkride" },
-  { id: IDS.enrollOlivia, schoolId: IDS.school, userId: IDS.studentOlivia, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2025-11-20T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "Stage 1, landing practice" },
+  { id: IDS.enrollAlex, schoolId: IDS.school, userId: IDS.studentAlex, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2025-09-15T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "Progressing well through Stage 2", planCadenceHoursPerWeek: 3 },
+  { id: IDS.enrollEmma, schoolId: IDS.school, userId: IDS.studentEmma, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2026-01-10T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "New student, started Stage 1", planCadenceHoursPerWeek: 2 },
+  { id: IDS.enrollLiam, schoolId: IDS.school, userId: IDS.studentLiam, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorSarah, enrolledAt: "2025-06-01T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "In Stage 3, preparing for checkride", planCadenceHoursPerWeek: 4 },
+  { id: IDS.enrollOlivia, schoolId: IDS.school, userId: IDS.studentOlivia, courseVersionId: IDS.courseVersionPPL, primaryInstructorId: IDS.instructorMike, enrolledAt: "2025-11-20T00:00:00Z", completedAt: null, withdrawnAt: null, notes: "Stage 1, landing practice", planCadenceHoursPerWeek: 2.5 },
 ];
 
 // ── Grade Sheets (progress tracking) ───────────────────

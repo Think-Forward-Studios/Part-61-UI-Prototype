@@ -163,7 +163,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     <Row label="Date of Birth" value={profile.dateOfBirth ? format(new Date(profile.dateOfBirth), "MMM d, yyyy") : "—"} />
                     <Row label="Phone" value={profile.phone ?? "—"} />
                     <Row label="Email" value={user.email} />
-                    <Row label="Address" value={[profile.addressLine1, profile.city, profile.state, profile.postalCode].filter(Boolean).join(", ") || "—"} />
+                    <Row label="Address" value={[profile.addressLine1, profile.addressLine2, profile.city, profile.state, profile.postalCode].filter(Boolean).join(", ") || "—"} />
+                    {profile.country && <Row label="Country" value={profile.country} />}
+                    {profile.emailAlt && <Row label="Alt. Email" value={profile.emailAlt} />}
                     <Row label="FAA Cert #" value={profile.faaAirmanCertNumber ?? "Not on file"} />
                   </>
                 )}
@@ -174,7 +176,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               <CardContent className="space-y-2 text-sm">
                 {contacts.length > 0 ? contacts.map(c => (
                   <div key={c.id}>
-                    <Row label="Name" value={c.name} />
+                    <Row label="Name" value={c.isPrimary ? `${c.name}` : c.name} />
+                    {c.isPrimary && <Badge variant="outline" className="text-[10px] mb-1">Primary</Badge>}
                     <Row label="Relationship" value={c.relationship} />
                     <Row label="Phone" value={c.phone} />
                     <Row label="Email" value={c.email ?? "—"} />
@@ -197,6 +200,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 <Row label="Enrolled" value={enrollment ? format(new Date(enrollment.enrolledAt), "MMM d, yyyy") : "—"} />
                 <Row label="Program" value="Private Pilot (PPL)" />
                 <Row label="Instructor" value={users.find(u => u.id === enrollment?.primaryInstructorId)?.fullName ?? "—"} />
+                {enrollment?.planCadenceHoursPerWeek && <Row label="Target Pace" value={`${enrollment.planCadenceHoursPerWeek}h/week`} />}
+                {enrollment?.completedAt && <Row label="Status" value={`Completed ${format(new Date(enrollment.completedAt), "MMM d, yyyy")}`} />}
+                {enrollment?.withdrawnAt && <Row label="Status" value={`Withdrawn ${format(new Date(enrollment.withdrawnAt), "MMM d, yyyy")}`} />}
+                {enrollment?.notes && <Row label="Notes" value={enrollment.notes} />}
               </CardContent>
             </Card>
 
@@ -241,6 +248,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                       <div key={r.id} className="py-1">
                         <Row label="Authorized Person" value={r.name} />
                         <Row label="Relationship" value={r.relationship} />
+                        <Row label="Granted" value={format(new Date(r.grantedAt), "MMM d, yyyy")} />
                         {r.notes && <p className="text-xs text-muted-foreground mt-1">{r.notes}</p>}
                       </div>
                     ))}
@@ -295,6 +303,12 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                       <p className="text-xs text-muted-foreground">Projected Checkride</p>
                       <p className="font-semibold">{forecast.projectedCheckrideDate ? format(new Date(forecast.projectedCheckrideDate), "MMM d, yyyy") : "—"}</p>
                     </div>
+                    {forecast.projectedCompletionDate && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Projected Completion</p>
+                        <p className="font-semibold">{format(new Date(forecast.projectedCompletionDate), "MMM d, yyyy")}</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -358,6 +372,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                       <p className="text-xs text-muted-foreground line-clamp-2">{end.renderedText}</p>
                       <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                         <span>Issued {format(new Date(end.issuedAt), "MMM d, yyyy")}</span>
+                        {end.issuedByUserId && <span>by {users.find(u => u.id === end.issuedByUserId)?.fullName ?? "Unknown"}</span>}
                         {end.aircraftContext && <span>| {end.aircraftContext}</span>}
                       </div>
                     </div>
@@ -418,18 +433,21 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     const stage = stages.find(s => s.id === sc.stageId);
                     const checker = users.find(u => u.id === sc.checkerUserId);
                     return (
-                      <div key={sc.id} className="flex items-center gap-3 p-2 rounded-md border text-sm">
-                        <div className={`h-2.5 w-2.5 rounded-full ${sc.status === "passed" ? "bg-green-500" : sc.status === "failed" ? "bg-red-500" : "bg-blue-500"}`} />
-                        <div className="flex-1">
-                          <p className="font-medium">{stage?.title ?? "Stage Check"}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Checker: {checker?.fullName ?? "—"}
-                            {sc.conductedAt ? ` | ${format(new Date(sc.conductedAt), "MMM d, yyyy")}` : sc.scheduledAt ? ` | Scheduled ${format(new Date(sc.scheduledAt), "MMM d, yyyy")}` : ""}
-                          </p>
+                      <div key={sc.id} className="p-2 rounded-md border text-sm">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-2.5 w-2.5 rounded-full ${sc.status === "passed" ? "bg-green-500" : sc.status === "failed" ? "bg-red-500" : "bg-blue-500"}`} />
+                          <div className="flex-1">
+                            <p className="font-medium">{stage?.title ?? "Stage Check"}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Checker: {checker?.fullName ?? "—"}
+                              {sc.conductedAt ? ` | ${format(new Date(sc.conductedAt), "MMM d, yyyy")}` : sc.scheduledAt ? ` | Scheduled ${format(new Date(sc.scheduledAt), "MMM d, yyyy")}` : ""}
+                            </p>
+                          </div>
+                          <Badge className={sc.status === "passed" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : sc.status === "failed" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"}>
+                            {sc.status}
+                          </Badge>
                         </div>
-                        <Badge className={sc.status === "passed" ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" : sc.status === "failed" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"}>
-                          {sc.status}
-                        </Badge>
+                        {sc.remarks && <p className="text-xs text-muted-foreground mt-1 ml-5 italic">{sc.remarks}</p>}
                       </div>
                     );
                   })}
@@ -456,7 +474,11 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                           <span className="font-medium">{lesson?.code}: {lesson?.title}</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">{ov.justification}</p>
-                        <p className="text-xs text-muted-foreground">Expires {format(new Date(ov.expiresAt), "MMM d, yyyy")} | {ov.consumedAt ? "Consumed" : "Unused"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Granted {format(new Date(ov.grantedAt), "MMM d, yyyy")}
+                          {ov.grantedByUserId && ` by ${users.find(u => u.id === ov.grantedByUserId)?.fullName ?? "Unknown"}`}
+                          {" | "}Expires {format(new Date(ov.expiresAt), "MMM d, yyyy")} | {ov.consumedAt ? "Consumed" : "Unused"}
+                        </p>
                       </div>
                     );
                   })}

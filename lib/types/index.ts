@@ -222,6 +222,7 @@ export interface StudentCourseEnrollment {
   completedAt: string | null;
   withdrawnAt: string | null;
   notes: string | null;
+  planCadenceHoursPerWeek: number | null;
 }
 
 export interface LessonGradeSheet {
