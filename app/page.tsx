@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, UserPlus, Mail } from "lucide-react";
+import { BookOpen, UserPlus, Mail, Clock } from "lucide-react";
 import { TFSBadge } from "@/components/tfs-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Watermark } from "@/components/watermark";
 import { useAuth } from "@/lib/auth-context";
+import { school, base } from "@/lib/mock-data";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -65,7 +66,11 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <div className="h-2 w-2 rounded-full bg-purple-500" />
-                Dothan, AL (KDHN)
+                {base.name}
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                {(base.timezone ?? school.timezone).replace("America/", "")} Time
               </div>
             </div>
           </div>

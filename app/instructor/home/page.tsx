@@ -17,6 +17,7 @@ import {
   aircraft, maintenanceItems, squawks,
   aircraftPositions, metarReports, personHolds,
   activityTypeLabels, activityTypeColors,
+  school, base,
 } from "@/lib/mock-data";
 import { IDS } from "@/lib/mock-data/ids";
 import Link from "next/link";
@@ -140,7 +141,9 @@ export default function HomePage() {
       <div className="flex items-center justify-between mb-3 shrink-0">
         <div>
           <h2 className="text-xl font-semibold">Welcome back, {firstName}</h2>
-          <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+          <p className="text-sm text-muted-foreground">
+            {format(new Date(), "EEEE, MMMM d, yyyy")} &middot; {base.name} &middot; {(base.timezone ?? school.timezone).replace("America/", "")} Time
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Pane Count Selector */}
