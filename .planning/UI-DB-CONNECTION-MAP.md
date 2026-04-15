@@ -1,7 +1,7 @@
 # UI ↔ Database Connection Map
 
 > **Living document** — Auto-updated as UI pages and DB schema evolve.  
-> Last scanned: 2026-04-14 (second pass — 13 new table connections added)  
+> Last scanned: 2026-04-15 (timezone columns now surfaced in Landing + Instructor Home)  
 > UI Prototype: `Part-61-UI-Prototype/`  
 > Database Schema: `Part-61-School/packages/db/src/schema/`  
 > **Role scope:** INSTRUCTOR role only. Student, Maintenance, Admin, and Guest role views will be mapped separately.
@@ -37,6 +37,7 @@
 | "5 Aircraft in Fleet" | `COUNT(aircraft)` | 🔁 Derived |
 | "3 Certified Instructors" | `COUNT(user_roles WHERE role='instructor')` | 🔁 Derived |
 | "Austin, TX (KAUS)" | `bases.name`, `bases.latitude/longitude` | ⚠️ Hardcoded |
+| School/Base timezone | `schools.timezone`, `bases.timezone` (fallback) | ✅ |
 
 ### Prospective Students Section
 | UI Element | DB Table.Column | Status |
@@ -45,15 +46,14 @@
 | "How to Apply" steps | — | 🔴 No CMS/content table — static content |
 | Contact form (name, email, message) | — | 🔴 No `contact_inquiry` or `lead` table |
 
-### DB Columns NOT in UI (schools/bases)
-| DB Column | Table | Note |
-|-----------|-------|------|
-| 🟡 `schools.timezone` | schools | Not displayed anywhere |
-| 🟡 `bases.timezone` | bases | Not displayed (falls back to school) |
-
 ---
 
 ## 2. Instructor Dashboard Shell (`app/instructor/layout.tsx`)
+
+### Instructor Homepage (`app/instructor/home/page.tsx`)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| School/Base timezone (header, next to date) | `schools.timezone`, `bases.timezone` (fallback) | ✅ |
 
 ### Top Bar
 | UI Element | DB Table.Column | Status |
@@ -607,7 +607,7 @@
 | Metric | Previous | Current | Change |
 |--------|----------|---------|--------|
 | DB tables with UI representation | ~25 | ~38 | +13 |
-| DB tables with NO UI (🟡) | 22 | 9 | -13 |
+| DB tables with NO UI (🟡) | 22 | 7 | -15 |
 | UI elements with NO DB column (🔴) | 11 | 11 | unchanged |
 
 ---
