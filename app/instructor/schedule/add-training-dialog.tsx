@@ -14,6 +14,7 @@ import { CalendarIcon, ChevronRight, UserPlus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { ExperienceFields } from "@/components/experience-fields";
 import { getInstructorStudents, getNextLesson, aircraft, rooms, users, enrollments } from "@/lib/mock-data";
 import { IDS } from "@/lib/mock-data/ids";
 
@@ -68,7 +69,7 @@ export function AddTrainingDialog({ open, onOpenChange }: { open: boolean; onOpe
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className={cn("sm:max-w-lg", step === "new-student" && "sm:max-w-xl max-h-[85vh] overflow-y-auto")}>
         <DialogHeader>
           <DialogTitle>
             {step === "new-student" ? "Onboard New Student" : "Schedule Training"}
@@ -189,10 +190,8 @@ export function AddTrainingDialog({ open, onOpenChange }: { open: boolean; onOpe
             </div>
 
             <Separator />
-            <div className="space-y-1">
-              <Label>Prior Flight Hours</Label>
-              <Input type="number" defaultValue="0" />
-            </div>
+            <ExperienceFields />
+            <Separator />
             <div className="space-y-1">
               <Label>Medical Class</Label>
               <Select defaultValue="third">

@@ -15,6 +15,7 @@ import {
 import { IDS } from "@/lib/mock-data/ids";
 import { AddTrainingDialog } from "./add-training-dialog";
 import { BlockoutDialog } from "./blockout-dialog";
+import { AvailabilityDialog } from "./availability-dialog";
 import type { Reservation } from "@/lib/types";
 
 // FullCalendar must be loaded client-side only
@@ -40,6 +41,7 @@ export default function SchedulePage() {
   const [selectedRes, setSelectedRes] = useState<Reservation | null>(null);
   const [addTrainingOpen, setAddTrainingOpen] = useState(false);
   const [blockoutOpen, setBlockoutOpen] = useState(false);
+  const [availabilityOpen, setAvailabilityOpen] = useState(false);
 
   function buildTitle(r: Reservation) {
     const student = users.find(u => u.id === r.studentId);
@@ -59,7 +61,7 @@ export default function SchedulePage() {
           <Button size="sm" variant="outline" onClick={() => setBlockoutOpen(true)}>
             <Clock className="h-4 w-4 mr-1" />Blockout Time
           </Button>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={() => setAvailabilityOpen(true)}>
             <CalendarCheck className="h-4 w-4 mr-1" />Set Availability
           </Button>
         </div>
@@ -86,6 +88,7 @@ export default function SchedulePage() {
       {/* Dialogs */}
       <AddTrainingDialog open={addTrainingOpen} onOpenChange={setAddTrainingOpen} />
       <BlockoutDialog open={blockoutOpen} onOpenChange={setBlockoutOpen} />
+      <AvailabilityDialog open={availabilityOpen} onOpenChange={setAvailabilityOpen} />
     </div>
   );
 }

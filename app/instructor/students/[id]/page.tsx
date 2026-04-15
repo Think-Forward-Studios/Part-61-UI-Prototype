@@ -1,8 +1,12 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, UserCog, BookOpen, Trash2, ShieldAlert, Clock, FileText, Award, AlertTriangle, TrendingUp, ClipboardCheck, Ban } from "lucide-react";
+import { ArrowLeft, Calendar, UserCog, BookOpen, Trash2, ShieldAlert, Clock, FileText, Award, AlertTriangle, TrendingUp, ClipboardCheck, Ban, Plus, Pencil } from "lucide-react";
+import { AddEndorsementDialog } from "@/components/student-detail/add-endorsement-dialog";
+import { AddTestGradeDialog } from "@/components/student-detail/add-test-grade-dialog";
+import { AddStageCheckDialog } from "@/components/student-detail/add-stage-check-dialog";
+import { AddOverrideDialog } from "@/components/student-detail/add-override-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,6 +67,13 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const totalNight = studentFlightTime.reduce((sum, f) => sum + f.nightMinutes, 0);
   const totalLandings = studentFlightTime.reduce((sum, f) => sum + f.dayLandings + f.nightLandings, 0);
   const totalInstrument = studentFlightTime.reduce((sum, f) => sum + f.instrumentActualMinutes + f.instrumentSimulatedMinutes, 0);
+
+  // Dialog states
+  const [editDemographics, setEditDemographics] = useState(false);
+  const [addEndorsement, setAddEndorsement] = useState(false);
+  const [addTestGrade, setAddTestGrade] = useState(false);
+  const [addStageCheck, setAddStageCheck] = useState(false);
+  const [addOverride, setAddOverride] = useState(false);
 
   if (!user) return <div className="p-8 text-center text-muted-foreground">Student not found</div>;
 
@@ -139,7 +150,12 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         <TabsContent value="demographics" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardHeader><CardTitle className="text-base">Personal Information</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base">Personal Information</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => { setEditDemographics(!editDemographics); alert(editDemographics ? "Edit mode disabled (prototype)" : "Edit mode enabled — fields would become editable (prototype)"); }}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" />{editDemographics ? "Done" : "Edit"}
+                </Button>
+              </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 {profile && (
                   <>
@@ -322,7 +338,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           {/* Endorsements — NEW */}
           {endorsements.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Award className="h-4 w-4" />Endorsements</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base flex items-center gap-2"><Award className="h-4 w-4" />Endorsements</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setAddEndorsement(true)}><Plus className="h-3.5 w-3.5 mr-1" />Add</Button>
+              </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {endorsements.map(end => (
@@ -351,7 +370,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           {/* Test Grades — NEW */}
           {studentTestGrades.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Test Results</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base flex items-center gap-2"><ClipboardCheck className="h-4 w-4" />Test Results</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setAddTestGrade(true)}><Plus className="h-3.5 w-3.5 mr-1" />Add</Button>
+              </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <Table className="min-w-[400px]">
@@ -386,7 +408,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           {/* Stage Checks — NEW */}
           {studentStageChecks.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4" />Stage Checks</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4" />Stage Checks</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setAddStageCheck(true)}><Plus className="h-3.5 w-3.5 mr-1" />Add</Button>
+              </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {studentStageChecks.map(sc => {
@@ -416,7 +441,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           {/* Active Overrides — NEW */}
           {studentOverrides.length > 0 && (
             <Card className="border-amber-500/30">
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><Ban className="h-4 w-4 text-amber-500" />Active Overrides</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base flex items-center gap-2"><Ban className="h-4 w-4 text-amber-500" />Active Overrides</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setAddOverride(true)}><Plus className="h-3.5 w-3.5 mr-1" />Add</Button>
+              </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {studentOverrides.map(ov => {
@@ -558,6 +586,12 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <AddEndorsementDialog open={addEndorsement} onOpenChange={setAddEndorsement} studentName={user.fullName} />
+      <AddTestGradeDialog open={addTestGrade} onOpenChange={setAddTestGrade} studentName={user.fullName} />
+      <AddStageCheckDialog open={addStageCheck} onOpenChange={setAddStageCheck} studentName={user.fullName} />
+      <AddOverrideDialog open={addOverride} onOpenChange={setAddOverride} studentName={user.fullName} />
     </div>
   );
 }

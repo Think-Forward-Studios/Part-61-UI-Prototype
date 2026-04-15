@@ -1,22 +1,85 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Plane, DoorOpen } from "lucide-react";
 import { format, addHours, startOfDay, isSameDay, addDays, startOfWeek } from "date-fns";
-import { aircraft, rooms, reservations, activityTypeColors, users } from "@/lib/mock-data";
+import {
+  aircraft,
+  rooms,
+  reservations as initialReservations,
+  activityTypeColors,
+  activityTypeLabels,
+  reservationStatusLabels,
+  users,
+  userRoles,
+} from "@/lib/mock-data";
+import type { Reservation, ReservationActivityType } from "@/lib/types";
 
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 6); // 6am - 9pm
+
+const studentUsers = users.filter(u => {
+  const role = userRoles.find(r => r.userId === u.id);
+  return role?.role === "student";
+});
+
+const instructorUsers = users.filter(u => {
+  const role = userRoles.find(r => r.userId === u.id);
+  return role?.role === "instructor";
+});
+
+const DURATION_OPTIONS = [
+  { value: "0.5", label: "30 min" },
+  { value: "1", label: "1 hr" },
+  { value: "1.5", label: "1.5 hr" },
+  { value: "2", label: "2 hr" },
+  { value: "3", label: "3 hr" },
+  { value: "4", label: "4 hr" },
+];
 
 export default function SchoolSchedulePage() {
   const [view, setView] = useState<"day" | "week">("day");
   const [currentDate] = useState(new Date());
   const [selectedResource, setSelectedResource] = useState<{ type: "aircraft" | "room"; id: string } | null>(null);
+  const [localReservations, setLocalReservations] = useState<Reservation[]>(initialReservations);
+
+  // Event detail dialog
+  const [selectedEvent, setSelectedEvent] = useState<Reservation | null>(null);
+  const [showEventDetail, setShowEventDetail] = useState(false);
+
+  // Create event dialog
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [createResourceContext, setCreateResourceContext] = useState<{ type: "aircraft" | "room"; id: string; day: Date; hour: number } | null>(null);
+
+  // Edit event dialog
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [editEvent, setEditEvent] = useState<Reservation | null>(null);
+
+  // Delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Create form state
+  const [createStudentId, setCreateStudentId] = useState("");
+  const [createActivityType, setCreateActivityType] = useState<string>("");
+  const [createStartTime, setCreateStartTime] = useState("");
+  const [createDuration, setCreateDuration] = useState("1.5");
+  const [createNotes, setCreateNotes] = useState("");
+
+  // Edit form state
+  const [editStudentId, setEditStudentId] = useState("");
+  const [editActivityType, setEditActivityType] = useState<string>("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editDuration, setEditDuration] = useState("1.5");
 
   const dayStart = startOfDay(currentDate);
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -28,7 +91,7 @@ export default function SchoolSchedulePage() {
   ];
 
   function getEventsForResource(resourceId: string, type: "aircraft" | "room") {
-    return reservations.filter(r => {
+    return localReservations.filter(r => {
       if (r.status === "cancelled") return false;
       if (type === "aircraft") return r.aircraftId === resourceId;
       return r.roomId === resourceId;
@@ -40,6 +103,124 @@ export default function SchoolSchedulePage() {
         ? aircraft.find(a => a.id === selectedResource.id)
         : rooms.find(r => r.id === selectedResource.id))
     : null;
+
+  // --- Event Detail Handlers ---
+
+  function handleEventClick(event: Reservation) {
+    setSelectedEvent(event);
+    setShowEventDetail(true);
+  }
+
+  function handleEmptyBlockClick(resourceId: string, resourceType: "aircraft" | "room", day: Date, hour: number) {
+    setCreateResourceContext({ type: resourceType, id: resourceId, day, hour });
+    const startDate = addHours(startOfDay(day), hour);
+    setCreateStartTime(format(startDate, "HH:mm"));
+    setCreateStudentId("");
+    setCreateActivityType(resourceType === "aircraft" ? "flight" : "academic");
+    setCreateDuration("1.5");
+    setCreateNotes("");
+    setShowCreateEvent(true);
+  }
+
+  function handleModifyClick() {
+    if (!selectedEvent) return;
+    const start = new Date(selectedEvent.startTime);
+    const end = new Date(selectedEvent.endTime);
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+
+    setEditEvent(selectedEvent);
+    setEditStudentId(selectedEvent.studentId ?? "");
+    setEditActivityType(selectedEvent.activityType);
+    setEditNotes(selectedEvent.notes ?? "");
+    setEditStartTime(format(start, "HH:mm"));
+    setEditDuration(String(durationHours));
+    setShowEventDetail(false);
+    setShowEditEvent(true);
+  }
+
+  function handleDeleteClick() {
+    setShowEventDetail(false);
+    setShowDeleteConfirm(true);
+  }
+
+  function confirmDelete() {
+    if (!selectedEvent) return;
+    setLocalReservations(prev => prev.filter(r => r.id !== selectedEvent.id));
+    setShowDeleteConfirm(false);
+    setSelectedEvent(null);
+    alert("Event deleted successfully.");
+  }
+
+  function handleSaveNewEvent() {
+    if (!createResourceContext) return;
+    const startDate = addHours(startOfDay(createResourceContext.day), parseFloat(createStartTime.split(":")[0] ?? "8") + parseFloat(createStartTime.split(":")[1] ?? "0") / 60);
+    const endDate = addHours(startDate, parseFloat(createDuration));
+    const newEvent: Reservation = {
+      id: `new-${Date.now()}`,
+      schoolId: "school-01",
+      baseId: "base-01",
+      activityType: (createActivityType || "flight") as ReservationActivityType,
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
+      status: "requested",
+      aircraftId: createResourceContext.type === "aircraft" ? createResourceContext.id : null,
+      instructorId: null,
+      studentId: createStudentId || null,
+      roomId: createResourceContext.type === "room" ? createResourceContext.id : null,
+      notes: createNotes || null,
+      lessonId: null,
+    };
+    setLocalReservations(prev => [...prev, newEvent]);
+    setShowCreateEvent(false);
+    alert("Event created successfully.");
+  }
+
+  function handleSaveEditEvent() {
+    if (!editEvent) return;
+    const originalStart = new Date(editEvent.startTime);
+    const day = startOfDay(originalStart);
+    const [hh, mm] = editStartTime.split(":");
+    const startDate = addHours(day, parseFloat(hh ?? "8") + parseFloat(mm ?? "0") / 60);
+    const endDate = addHours(startDate, parseFloat(editDuration));
+
+    setLocalReservations(prev =>
+      prev.map(r =>
+        r.id === editEvent.id
+          ? {
+              ...r,
+              studentId: editStudentId || r.studentId,
+              activityType: (editActivityType as ReservationActivityType) || r.activityType,
+              notes: editNotes || r.notes,
+              startTime: startDate.toISOString(),
+              endTime: endDate.toISOString(),
+            }
+          : r
+      )
+    );
+    setShowEditEvent(false);
+    setEditEvent(null);
+    alert("Event updated successfully.");
+  }
+
+  // --- Helpers for event detail display ---
+
+  function getResourceName(event: Reservation): string {
+    if (event.aircraftId) {
+      const ac = aircraft.find(a => a.id === event.aircraftId);
+      return ac ? `${ac.tailNumber} (${ac.make} ${ac.model})` : "Unknown Aircraft";
+    }
+    if (event.roomId) {
+      const rm = rooms.find(r => r.id === event.roomId);
+      return rm ? rm.name : "Unknown Room";
+    }
+    return "No resource assigned";
+  }
+
+  function getInstructorName(event: Reservation): string {
+    if (!event.instructorId) return "Unassigned";
+    const instructor = users.find(u => u.id === event.instructorId);
+    return instructor?.fullName ?? "Unknown";
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -96,9 +277,15 @@ export default function SchoolSchedulePage() {
                 </button>
                 {viewDays.map(day => (
                   <div key={day.toISOString()} className="flex-1 relative h-12">
+                    {/* Clickable empty time blocks */}
                     <div className="flex h-full">
                       {HOURS.map(h => (
-                        <div key={h} className="flex-1 border-r border-dashed border-muted min-w-[50px]" />
+                        <button
+                          key={h}
+                          className="flex-1 border-r border-dashed border-muted min-w-[50px] hover:bg-primary/5 transition-colors"
+                          onClick={() => handleEmptyBlockClick(resource.id, resource.type, day, h)}
+                          title={`Create event at ${h}:00`}
+                        />
                       ))}
                     </div>
                     {/* Event blocks */}
@@ -114,18 +301,22 @@ export default function SchoolSchedulePage() {
                         const student = users.find(u => u.id === event.studentId);
 
                         return (
-                          <div
+                          <button
                             key={event.id}
-                            className="absolute top-1 h-10 rounded-sm px-1 flex items-center text-[10px] text-white font-medium overflow-hidden cursor-default"
+                            className="absolute top-1 h-10 rounded-sm px-1 flex items-center text-[10px] text-white font-medium overflow-hidden cursor-pointer hover:brightness-110 hover:shadow-md transition-all z-10"
                             style={{
                               left: `${left}%`,
                               width: `${width}%`,
                               backgroundColor: activityTypeColors[event.activityType] ?? "#6b7280",
                             }}
                             title={`${student?.fullName ?? "?"} - ${event.notes ?? event.activityType}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEventClick(event);
+                            }}
                           >
                             {student?.fullName?.split(" ")[0] ?? ""}
-                          </div>
+                          </button>
                         );
                       })}
                   </div>
@@ -150,13 +341,13 @@ export default function SchoolSchedulePage() {
                   <div className="space-y-2 text-sm">
                     <Row label="Make/Model" value={`${(selected as typeof aircraft[0]).make} ${(selected as typeof aircraft[0]).model}`} />
                     <Row label="Year" value={String((selected as typeof aircraft[0]).year)} />
-                    <Row label="Equipment" value={(selected as typeof aircraft[0]).equipmentNotes ?? "—"} />
+                    <Row label="Equipment" value={(selected as typeof aircraft[0]).equipmentNotes ?? "\u2014"} />
                     <Row label="Status" value={(selected as typeof aircraft[0]).groundedAt ? "Grounded" : "Airworthy"} />
                   </div>
                 ) : (
                   <div className="space-y-2 text-sm">
-                    <Row label="Capacity" value={String((selected as typeof rooms[0]).capacity ?? "—")} />
-                    <Row label="Features" value={(selected as typeof rooms[0]).features?.join(", ") ?? "—"} />
+                    <Row label="Capacity" value={String((selected as typeof rooms[0]).capacity ?? "\u2014")} />
+                    <Row label="Features" value={(selected as typeof rooms[0]).features?.join(", ") ?? "\u2014"} />
                   </div>
                 )}
                 <div className="space-y-2">
@@ -169,7 +360,7 @@ export default function SchoolSchedulePage() {
                       const student = users.find(u => u.id === event.studentId);
                       return (
                         <div key={event.id} className="p-2 rounded-md bg-muted/50 text-sm">
-                          <p className="font-medium">{student?.fullName ?? "—"}</p>
+                          <p className="font-medium">{student?.fullName ?? "\u2014"}</p>
                           <p className="text-xs text-muted-foreground">
                             {format(new Date(event.startTime), "EEE, MMM d")} {format(new Date(event.startTime), "h:mm a")} - {format(new Date(event.endTime), "h:mm a")}
                           </p>
@@ -183,6 +374,211 @@ export default function SchoolSchedulePage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* ── Event Detail Dialog ── */}
+      <Dialog open={showEventDetail} onOpenChange={setShowEventDetail}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Event Details</DialogTitle>
+            <DialogDescription>View reservation information</DialogDescription>
+          </DialogHeader>
+          {selectedEvent && (() => {
+            const student = users.find(u => u.id === selectedEvent.studentId);
+            const start = new Date(selectedEvent.startTime);
+            const end = new Date(selectedEvent.endTime);
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    style={{ backgroundColor: activityTypeColors[selectedEvent.activityType] ?? "#6b7280" }}
+                    className="text-white"
+                  >
+                    {activityTypeLabels[selectedEvent.activityType] ?? selectedEvent.activityType}
+                  </Badge>
+                  <Badge variant="outline">
+                    {reservationStatusLabels[selectedEvent.status] ?? selectedEvent.status}
+                  </Badge>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <Row label="Student" value={student?.fullName ?? "Unassigned"} />
+                  <Row label="Instructor" value={getInstructorName(selectedEvent)} />
+                  <Row label="Date" value={format(start, "EEEE, MMM d, yyyy")} />
+                  <Row label="Time" value={`${format(start, "h:mm a")} - ${format(end, "h:mm a")}`} />
+                  <Row label="Resource" value={getResourceName(selectedEvent)} />
+                  {selectedEvent.notes && <Row label="Notes" value={selectedEvent.notes} />}
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button className="flex-1" variant="outline" onClick={handleModifyClick}>
+                    Modify
+                  </Button>
+                  <Button className="flex-1" variant="destructive" onClick={handleDeleteClick}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Create Event Dialog ── */}
+      <Dialog open={showCreateEvent} onOpenChange={setShowCreateEvent}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Event</DialogTitle>
+            <DialogDescription>
+              {createResourceContext && (() => {
+                const res = allResources.find(r => r.id === createResourceContext.id);
+                return `${res?.name ?? "Resource"} - ${format(createResourceContext.day, "EEE, MMM d")}`;
+              })()}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Student</Label>
+              <Select value={createStudentId} onValueChange={v => v && setCreateStudentId(v)}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select student..." /></SelectTrigger>
+                <SelectContent>
+                  {studentUsers.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.fullName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Activity Type</Label>
+              <Select value={createActivityType} onValueChange={v => v && setCreateActivityType(v)}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select type..." /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(activityTypeLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <Input type="time" value={createStartTime} onChange={e => setCreateStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Duration</Label>
+                <Select value={createDuration} onValueChange={v => v && setCreateDuration(v)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DURATION_OPTIONS.map(d => (
+                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                value={createNotes}
+                onChange={e => setCreateNotes(e.target.value)}
+                placeholder="Optional notes..."
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateEvent(false)}>Cancel</Button>
+            <Button onClick={handleSaveNewEvent}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Edit Event Dialog ── */}
+      <Dialog open={showEditEvent} onOpenChange={setShowEditEvent}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Modify Event</DialogTitle>
+            <DialogDescription>Update reservation details</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Student</Label>
+              <Select value={editStudentId} onValueChange={v => v && setEditStudentId(v)}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select student..." /></SelectTrigger>
+                <SelectContent>
+                  {studentUsers.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.fullName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Activity Type</Label>
+              <Select value={editActivityType} onValueChange={v => v && setEditActivityType(v)}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Select type..." /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(activityTypeLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <Input type="time" value={editStartTime} onChange={e => setEditStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Duration</Label>
+                <Select value={editDuration} onValueChange={v => v && setEditDuration(v)}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DURATION_OPTIONS.map(d => (
+                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                value={editNotes}
+                onChange={e => setEditNotes(e.target.value)}
+                placeholder="Notes..."
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditEvent(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditEvent}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete Confirmation Dialog ── */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this event? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEvent && (
+            <div className="text-sm text-muted-foreground">
+              <p><span className="font-medium text-foreground">{users.find(u => u.id === selectedEvent.studentId)?.fullName ?? "Unknown"}</span></p>
+              <p>{activityTypeLabels[selectedEvent.activityType] ?? selectedEvent.activityType} - {format(new Date(selectedEvent.startTime), "h:mm a")}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setSelectedEvent(null); }}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete Event
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

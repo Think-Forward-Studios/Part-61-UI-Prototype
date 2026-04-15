@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { Calendar, Users, CalendarDays, Map, Wrench, HelpCircle, LogOut, User, Clock, FileText, Lock, Settings, AlertTriangle, X, CheckCircle } from "lucide-react";
+import { Calendar, Users, CalendarDays, Map, Wrench, HelpCircle, LogOut, User, Clock, FileText, Lock, Settings, AlertTriangle, X, CheckCircle, LayoutDashboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { fifNotices, fifAcknowledgements } from "@/lib/mock-data";
 import { IDS } from "@/lib/mock-data/ids";
@@ -14,7 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+const baseTabs = [
   { label: "Schedule", href: "/instructor/schedule", icon: Calendar },
   { label: "Students", href: "/instructor/students", icon: Users },
   { label: "School Schedule", href: "/instructor/school-schedule", icon: CalendarDays },
@@ -29,6 +29,12 @@ export default function InstructorLayout({ children }: { children: React.ReactNo
   const { currentUser, profile, logout } = useAuth();
 
   const initials = profile ? `${profile.firstName[0]}${profile.lastName[0]}` : "?";
+  const firstName = profile?.firstName ?? "Home";
+
+  const tabs = useMemo(() => [
+    { label: `${firstName}'s Page`, href: "/instructor/home", icon: LayoutDashboard },
+    ...baseTabs,
+  ], [firstName]);
 
   return (
     <div className="min-h-screen flex flex-col">
