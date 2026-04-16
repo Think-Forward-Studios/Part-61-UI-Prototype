@@ -1,7 +1,7 @@
 # UI ↔ Database Connection Map
 
 > **Living document** — Auto-updated as UI pages and DB schema evolve.  
-> Last scanned: 2026-04-15 (timezone columns now surfaced in Landing + Instructor Home)  
+> Last scanned: 2026-04-15 (comprehensive scan — ~40 field-level updates from batch UI work across student detail, FIF banner, maintenance, live map, and school schedule)  
 > UI Prototype: `Part-61-UI-Prototype/`  
 > Database Schema: `Part-61-School/packages/db/src/schema/`  
 > **Role scope:** INSTRUCTOR role only. Student, Maintenance, Admin, and Guest role views will be mapped separately.
@@ -197,17 +197,24 @@
 | Date of birth | `person_profile.date_of_birth` | ✅ |
 | Phone | `person_profile.phone` | ✅ |
 | Email | `users.email` | ✅ |
-| Address | `person_profile.address_line1`, `.city`, `.state`, `.postal_code` | ✅ |
+| Alt. Email | `person_profile.email_alt` | ✅ |
+| Address | `person_profile.address_line1`, `.address_line2`, `.city`, `.state`, `.postal_code` | ✅ |
+| Country | `person_profile.country` | ✅ |
 | FAA Cert # | `person_profile.faa_airman_cert_number` | ✅ |
 | Emergency contact name | `emergency_contact.name` | ✅ |
 | Emergency contact relationship | `emergency_contact.relationship` | ✅ |
 | Emergency contact phone | `emergency_contact.phone` | ✅ |
 | Emergency contact email | `emergency_contact.email` | ✅ |
+| Emergency contact "Primary" badge | `emergency_contact.is_primary` | ✅ |
 | Medical on File indicator | `documents` WHERE `kind='medical' AND user_id = ?` | ✅ |
 | Medical expiry date | `documents.expires_at` WHERE `kind='medical'` | ✅ |
 | Enrolled date | `student_course_enrollment.enrolled_at` | ✅ |
 | Program | `course.title` via enrollment chain | ✅ |
 | Primary instructor | `users.full_name` via `enrollment.primary_instructor_id` | ✅ |
+| Target Pace | `student_course_enrollment.plan_cadence_hours_per_week` | ✅ |
+| Enrollment completed status badge | `student_course_enrollment.completed_at` | ✅ |
+| Enrollment withdrawn status badge | `student_course_enrollment.withdrawn_at` | ✅ |
+| Enrollment notes | `student_course_enrollment.notes` | ✅ |
 
 ### Demographics Tab — Documents Card (NEW)
 | UI Element | DB Table.Column | Status |
@@ -223,6 +230,7 @@
 | Authorized person name | `info_release_authorization.name` | ✅ |
 | Relationship | `info_release_authorization.relationship` | ✅ |
 | Notes | `info_release_authorization.notes` | ✅ |
+| Granted date | `info_release_authorization.granted_at` | ✅ |
 | Active filter | `info_release_authorization.revoked_at IS NULL` | ✅ |
 
 ### Progress Tab
@@ -240,11 +248,13 @@
 ### Progress Tab — Flight Time Summary Card (NEW)
 | UI Element | DB Table.Column | Status |
 |------------|----------------|--------|
+| Aircraft vs Simulator section split | `flight_log_time.is_simulator` | ✅ |
 | Dual received total | `flight_log_time` WHERE `kind='dual_received'` → SUM(`day_minutes` + `night_minutes`) | ✅ |
 | Solo total | `flight_log_time` WHERE `kind='solo'` → SUM(`day_minutes` + `night_minutes`) | ✅ |
 | Cross-country total | `flight_log_time` → SUM(`cross_country_minutes`) | ✅ |
 | Night total | `flight_log_time` → SUM(`night_minutes`) | ✅ |
 | Instrument total | `flight_log_time` → SUM(`instrument_actual_minutes` + `instrument_simulated_minutes`) | ✅ |
+| Instrument approaches count | `flight_log_time` → SUM(`instrument_approaches`) | ✅ |
 | Landing count | `flight_log_time` → SUM(`day_landings` + `night_landings`) | ✅ |
 
 ### Progress Tab — Endorsements Card (NEW)
@@ -256,6 +266,7 @@
 | Expired status | 🔁 Derived: `expires_at < NOW()` | 🔁 |
 | Rendered text | `student_endorsement.rendered_text` | ✅ |
 | Issued date | `student_endorsement.issued_at` | ✅ |
+| Issued by name | `users.full_name` via `student_endorsement.issued_by_user_id` | ✅ |
 | Aircraft context | `student_endorsement.aircraft_context` | ✅ |
 | Active filter | `student_endorsement.revoked_at IS NULL` | ✅ |
 
@@ -266,6 +277,7 @@
 | Score / max score | `test_grade.score`, `test_grade.max_score` | ✅ |
 | Recorded date | `test_grade.recorded_at` | ✅ |
 | Remarks | `test_grade.remarks` | ✅ |
+| Recorded By column | `users.full_name` via `test_grade.recorded_by_user_id` | ✅ |
 
 ### Progress Tab — Stage Checks Card (NEW)
 | UI Element | DB Table.Column | Status |
@@ -276,6 +288,7 @@
 | Scheduled date | `stage_check.scheduled_at` | ✅ |
 | Status badge (passed/failed/scheduled) | `stage_check.status` | ✅ |
 | Status dot color | 🔁 Derived from `stage_check.status` | 🔁 |
+| Remarks | `stage_check.remarks` | ✅ |
 | Stage check badge on accordion header | `stage_check.status` matched by `stage_id` | ✅ |
 
 ### Progress Tab — Active Overrides Card (NEW)
@@ -284,6 +297,8 @@
 | Override kind badge | `lesson_override.kind` | ✅ |
 | Lesson code + title | `lesson.code`, `.title` via `lesson_override.lesson_id` | ✅ |
 | Justification | `lesson_override.justification` | ✅ |
+| Granted date | `lesson_override.granted_at` | ✅ |
+| Granted by name | `users.full_name` via `lesson_override.granted_by_user_id` | ✅ |
 | Expiry date | `lesson_override.expires_at` | ✅ |
 | Consumed status | `lesson_override.consumed_at` (null = unused) | ✅ |
 | Active filter | `lesson_override.revoked_at IS NULL` | ✅ |
@@ -306,6 +321,7 @@
 | Ahead/behind weeks | `student_progress_forecast_cache.ahead_behind_weeks` | ✅ |
 | Remaining hours | `student_progress_forecast_cache.remaining_hours` | ✅ |
 | Projected checkride date | `student_progress_forecast_cache.projected_checkride_date` | ✅ |
+| Projected completion date | `student_progress_forecast_cache.projected_completion_date` | ✅ |
 
 ### Schedule Tab
 | UI Element | DB Table.Column | Status |
@@ -320,6 +336,8 @@
 |------------|----------------|--------|
 | No-show date | `no_show.scheduled_at` | ✅ |
 | No-show reason | `no_show.reason` | ✅ |
+| No-show aircraft tail | `aircraft.tail_number` via `no_show.aircraft_id` | ✅ |
+| No-show instructor name | `users.full_name` via `no_show.instructor_id` | ✅ |
 | No-show count | 🔁 `COUNT(no_show WHERE user_id = ?)` | 🔁 |
 
 ### Action Buttons
@@ -333,42 +351,23 @@
 ### DB Columns NOT in Student Detail UI
 | DB Column | Table | Note |
 |-----------|-------|------|
-| 🟡 `person_profile.address_line2` | person_profile | Not displayed |
-| 🟡 `person_profile.country` | person_profile | Not displayed |
-| 🟡 `person_profile.email_alt` | person_profile | Not displayed |
 | 🟡 `person_profile.citizenship_status` | person_profile | Not displayed |
 | 🟡 `person_profile.tsa_afsp_status` | person_profile | Not displayed — important for foreign nationals |
-| 🟡 `emergency_contact.is_primary` | emergency_contact | Not indicated in UI |
-| 🟡 `student_course_enrollment.notes` | enrollment | Not displayed |
-| 🟡 `student_course_enrollment.plan_cadence_hours_per_week` | enrollment | Not displayed |
-| 🟡 `student_course_enrollment.completed_at` | enrollment | Status not shown |
-| 🟡 `student_course_enrollment.withdrawn_at` | enrollment | Status not shown |
 | 🟡 `student_endorsement.template_id` | student_endorsement | Not displayed |
-| 🟡 `student_endorsement.issued_by_user_id` | student_endorsement | Issuer name not shown |
-| 🟡 `stage_check.remarks` | stage_check | Not displayed |
 | 🟡 `stage_check.sealed` | stage_check | Not displayed |
 | 🟡 `flight_log_time.reservation_id` | flight_log_time | Link to reservation not shown |
-| 🟡 `flight_log_time.is_simulator` | flight_log_time | Not broken out separately |
-| 🟡 `flight_log_time.instrument_approaches` | flight_log_time | Not displayed |
 | 🟡 `test_grade.component_kind` | test_grade | Not displayed |
 | 🟡 `test_grade.component_id` | test_grade | Not displayed |
 | 🟡 `test_grade.sealed` | test_grade | Not displayed |
-| 🟡 `test_grade.recorded_by_user_id` | test_grade | Not displayed |
 | 🟡 `person_hold.created_by_user_id` | person_hold | Creator not shown |
 | 🟡 `person_hold.cleared_at/by/reason` | person_hold | Clearance info not shown (filtered out) |
 | 🟡 `documents.storage_path` | documents | Not displayed (internal) |
 | 🟡 `documents.mime_type` | documents | Not displayed |
 | 🟡 `documents.byte_size` | documents | Not displayed |
 | 🟡 `documents.uploaded_by_user_id` | documents | Uploader not shown |
-| 🟡 `info_release_authorization.granted_at` | info_release_authorization | Grant date not shown |
-| 🟡 `lesson_override.granted_at` | lesson_override | Grant date not shown |
-| 🟡 `lesson_override.granted_by_user_id` | lesson_override | Granter not shown |
-| 🟡 `no_show.aircraft_id` | no_show | Aircraft not shown |
-| 🟡 `no_show.instructor_id` | no_show | Instructor not shown |
 | 🟡 `no_show.recorded_by_user_id` | no_show | Recorder not shown |
 | 🟡 `no_show.recorded_at` | no_show | Record timestamp not shown |
 | 🟡 `student_progress_forecast_cache.computed_at` | forecast | Computation time not shown |
-| 🟡 `student_progress_forecast_cache.projected_completion_date` | forecast | Not displayed (only checkride date shown) |
 | 🟡 `training_record_audit_exception.details` | audit_exception | JSONB details not displayed |
 | 🟡 `training_record_audit_exception.last_detected_at` | audit_exception | Only first_detected_at shown |
 | 🟡 `line_item_grade.position` | line_item_grade | Not displayed (used for ordering) |
@@ -381,11 +380,15 @@
 | UI Element | DB Table.Column | Status |
 |------------|----------------|--------|
 | Room name + capacity | `room.name`, `.capacity` | ✅ |
-| Room features | `room.features` (in detail sheet) | ✅ |
+| Room features badges | `room.features` | ✅ |
 | Aircraft tail + model | `aircraft.tail_number`, `.make`, `.model` | ✅ |
 | Aircraft year | `aircraft.year` (in detail sheet) | ✅ |
 | Aircraft equipment notes | `aircraft.equipment_notes` (in detail sheet) | ✅ |
 | Aircraft grounded status | `aircraft.grounded_at` | ✅ |
+| Aircraft engine info | `aircraft_engine.designation`, `.make`, `.model`, `.total_time_hours` (in detail sheet) | ✅ |
+| Aircraft equipment tags | `aircraft_equipment.kind`, `.label` (badges in detail sheet) | ✅ |
+| Availability background bands | `schedule_block` (rendered as availability bands) | ✅ |
+| Rendered time ranges | `schedule_block_instance` (drives rendered time ranges) | ✅ |
 | Time block events | `reservation` filtered by `aircraft_id` or `room_id` | ✅ |
 | Event student name | `users.full_name` via `reservation.student_id` | ✅ |
 | Event color | Derived from `reservation.activity_type` | 🔁 |
@@ -393,11 +396,11 @@
 ### DB Columns NOT in School Schedule UI
 | DB Column | Table | Note |
 |-----------|-------|------|
-| 🟡 `room.features` | room | Only shown in detail sheet, not grid |
-| 🟡 `schedule_block.*` | schedule_block | Recurring blocks not visualized |
-| 🟡 `schedule_block_instance.*` | schedule_block_instance | Not shown |
-| 🟡 `aircraft_engine.*` | aircraft_engine | Engine details not shown |
-| 🟡 `aircraft_equipment.*` | aircraft_equipment | Equipment tags not shown on grid |
+| 🟡 `schedule_block.recurrence_rule` | schedule_block | JSONB recurrence details not exposed in UI |
+| 🟡 `aircraft_engine.serial_number` | aircraft_engine | Serial not shown |
+| 🟡 `aircraft_engine.overhaul_hours` | aircraft_engine | Overhaul info not shown |
+| 🟡 `aircraft_equipment.installed_at` | aircraft_equipment | Install date not shown |
+| 🟡 `aircraft_equipment.expires_at` | aircraft_equipment | Expiry not shown |
 
 ---
 
@@ -408,7 +411,8 @@
 |------------|-------------------------------|--------|
 | Base marker position | `bases.latitude`, `.longitude` | ✅ |
 | Base name | `bases.name` | ✅ |
-| Geofence radius | `geofence.radius_nm`, `.geometry` | ⚠️ Hardcoded 50NM circle. DB has `geofence` table. |
+| Geofence (circle + polygon) | `geofence.kind`, `.radius_nm`, `.geometry` | ✅ |
+| Geofence label | `geofence.label` | ✅ |
 | School aircraft positions | External ADS-B API | 🔴 Not a DB table — real-time external feed |
 | Traffic positions | External ADS-B API | 🔴 External feed |
 | METAR data | External aviation weather API | 🔴 Not in DB |
@@ -421,12 +425,19 @@
 | Student on flight | `users.full_name` via `reservation` WHERE status='dispatched' | ✅ |
 | "On Schedule" badge | `reservation.status = 'dispatched'` match | ✅ |
 
+### Aircraft Click — Passenger Manifest (NEW)
+| UI Element | DB Table.Column | Status |
+|------------|----------------|--------|
+| Passenger position | `passenger_manifest.position` | ✅ |
+| Passenger name | `passenger_manifest.name` | ✅ |
+| Passenger weight | `passenger_manifest.weight_lbs` | ✅ |
+
 ### DB Columns NOT in Live Map UI
 | DB Column | Table | Note |
 |-----------|-------|------|
-| 🟡 `geofence.kind` | geofence | UI hardcodes circle, DB supports polygon |
-| 🟡 `geofence.label` | geofence | Not displayed |
-| 🟡 `passenger_manifest.*` | passenger_manifest | Not shown for flying aircraft |
+| 🟡 `geofence.alert_on_exit` | geofence | Alert config not shown |
+| 🟡 `passenger_manifest.reservation_id` | passenger_manifest | Link to reservation not shown |
+| 🟡 `passenger_manifest.is_pilot` | passenger_manifest | Pilot flag not shown |
 
 ---
 
@@ -451,6 +462,8 @@
 | Status badge | `maintenance_item.status` | ✅ |
 | Next due date | `maintenance_item.next_due_at` | ✅ |
 | Next due hours | `maintenance_item.next_due_hours` | ✅ |
+| Description (expandable row) | `maintenance_item.description` | ✅ |
+| Last Done column | `maintenance_item.last_completed_at` | ✅ |
 
 ### Squawk Table & Detail
 | UI Element | DB Table.Column | Status |
@@ -462,8 +475,10 @@
 | Opened date | `aircraft_squawk.opened_at` | ✅ |
 | Description | `aircraft_squawk.description` | ✅ |
 | Reported by | `users.full_name` via `aircraft_squawk.opened_by` | ✅ |
+| Deferred until (detail sheet) | `aircraft_squawk.deferred_until` | ✅ |
+| Deferral justification (detail sheet) | `aircraft_squawk.deferral_justification` | ✅ |
 
-### Work Order Table
+### Work Order Table & Detail
 | UI Element | DB Table.Column | Status |
 |------------|----------------|--------|
 | Aircraft tail | `aircraft.tail_number` | ✅ |
@@ -472,26 +487,23 @@
 | Status badge | `work_order.status` | ✅ |
 | Assigned to | `users.full_name` via `work_order.assigned_to_user_id` | ✅ |
 | Created date | `work_order.created_at` | ✅ |
+| Description (detail sheet) | `work_order.description` | ✅ |
+| Started at (timeline in detail sheet) | `work_order.started_at` | ✅ |
+| Completed at (timeline in detail sheet) | `work_order.completed_at` | ✅ |
+| Signed off at (timeline in detail sheet) | `work_order.signed_off_at` | ✅ |
+| Signed off by (timeline in detail sheet) | `users.full_name` via `work_order.signed_off_by` | ✅ |
 
 ### DB Columns NOT in Maintenance UI
 | DB Column | Table | Note |
 |-----------|-------|------|
-| 🟡 `maintenance_item.description` | maintenance_item | Not in table (only title) |
 | 🟡 `maintenance_item.interval_rule` | maintenance_item | JSONB rule not displayed |
-| 🟡 `maintenance_item.last_completed_at` | maintenance_item | Not shown |
 | 🟡 `maintenance_item.last_completed_hours` | maintenance_item | Not shown |
 | 🟡 `maintenance_item.engine_id` | maintenance_item | Engine association not shown |
 | 🟡 `aircraft_squawk.triaged_at/by` | aircraft_squawk | Triage info not shown |
-| 🟡 `aircraft_squawk.deferred_until` | aircraft_squawk | Deferral date not shown |
-| 🟡 `aircraft_squawk.deferral_justification` | aircraft_squawk | Not shown |
 | 🟡 `aircraft_squawk.work_order_id` | aircraft_squawk | Link to WO not shown |
 | 🟡 `aircraft_squawk.returned_to_service_at` | aircraft_squawk | RTS info not shown |
-| 🟡 `work_order.description` | work_order | Not in table |
 | 🟡 `work_order.source_squawk_id` | work_order | Link to source squawk not shown |
 | 🟡 `work_order.source_maintenance_item_id` | work_order | Link to source MX item not shown |
-| 🟡 `work_order.started_at` | work_order | Timeline not shown |
-| 🟡 `work_order.completed_at` | work_order | Timeline not shown |
-| 🟡 `work_order.signed_off_at/by` | work_order | Sign-off not shown |
 | 🟡 `work_order_task.*` | work_order_task | Task breakdown not shown |
 | 🟡 `work_order_part_consumption.*` | work_order_part_consumption | Parts used not shown |
 | 🟡 `aircraft_component.*` | aircraft_component | Components not shown |
@@ -534,6 +546,10 @@
 | Notice severity badge | `fif_notice.severity` | ✅ |
 | Notice title | `fif_notice.title` | ✅ |
 | Notice body | `fif_notice.body` | ✅ |
+| Posted date (expanded view) | `fif_notice.posted_at` | ✅ |
+| Posted by name (expanded view) | `users.full_name` via `fif_notice.posted_by_user_id` | ✅ |
+| Effective date (when different from posted_at) | `fif_notice.effective_at` | ✅ |
+| Base name | `bases.name` via `fif_notice.base_id` | ✅ |
 | Expiry filter | `fif_notice.expires_at` (expired notices hidden) | ✅ |
 | Severity sort order | 🔁 Derived: critical > important > info | 🔁 |
 | Severity-based styling (bg, border, icon) | 🔁 Derived from `fif_notice.severity` | 🔁 |
@@ -549,10 +565,7 @@
 ### DB Columns NOT in FIF Banner UI
 | DB Column | Table | Note |
 |-----------|-------|------|
-| 🟡 `fif_notice.base_id` | fif_notice | Not used to filter (shows all notices) |
-| 🟡 `fif_notice.posted_at` | fif_notice | Post date not displayed |
-| 🟡 `fif_notice.posted_by_user_id` | fif_notice | Author not shown |
-| 🟡 `fif_notice.effective_at` | fif_notice | Effective date not used in filter |
+| (none — all FIF columns now surfaced) | | |
 
 ---
 
@@ -576,15 +589,14 @@
 ### 🟡 DB Tables with NO UI Representation (not yet surfaced)
 | # | DB Table | Priority | Notes |
 |---|---------|----------|-------|
-| 1 | `passenger_manifest` | Low | Dispatch feature |
-| 2 | `course_phase` / `unit` | Low | Syllabus depth (phases within stages) |
-| 3 | `aircraft_component` | Low | Detailed component tracking |
-| 4 | `airworthiness_directive` | Low | AD compliance tracking |
-| 5 | `logbook_entry` | Low | Aircraft maintenance logbook |
-| 6 | `work_order_task` | Low | WO task breakdown |
-| 7 | `part` / `part_lot` | Low | Parts inventory |
-| 8 | `audit_log` | Low | System audit trail |
-| 9 | `flight_log_entry` / `flight_log_entry_engine` | Low | Hobbs/tach recording |
+| 1 | `course_phase` / `unit` | Low | Syllabus depth (phases within stages) |
+| 2 | `aircraft_component` | Low | Detailed component tracking |
+| 3 | `airworthiness_directive` | Low | AD compliance tracking |
+| 4 | `logbook_entry` | Low | Aircraft maintenance logbook |
+| 5 | `work_order_task` | Low | WO task breakdown |
+| 6 | `part` / `part_lot` | Low | Parts inventory |
+| 7 | `audit_log` | Low | System audit trail |
+| 8 | `flight_log_entry` / `flight_log_entry_engine` | Low | Hobbs/tach recording |
 
 ### Previously Unsurfaced Tables — Now Connected (this scan)
 | # | DB Table | Where Surfaced | Connection Quality |
@@ -602,13 +614,22 @@
 | 11 | `fif_notice` / `fif_acknowledgement` | Instructor layout > dashboard-wide FIF banner | ✅ Field-level mapped |
 | 12 | `student_progress_forecast_cache` | Student Detail > Progress tab > Forecast card | ✅ Field-level mapped |
 | 13 | `training_record_audit_exception` | Student Detail > Compliance Warning banner | ✅ Field-level mapped |
+| 14 | `passenger_manifest` | Live Map > Aircraft click panel | ✅ Field-level mapped |
+| 15 | `schedule_block` / `schedule_block_instance` | School Schedule > Availability background bands | ✅ Field-level mapped |
+| 16 | `aircraft_engine` | School Schedule > Aircraft detail sheet | ✅ Field-level mapped |
+| 17 | `aircraft_equipment` | School Schedule > Aircraft detail sheet (badges) | ✅ Field-level mapped |
 
 ### Coverage Summary
 | Metric | Previous | Current | Change |
 |--------|----------|---------|--------|
-| DB tables with UI representation | ~25 | ~38 | +13 |
-| DB tables with NO UI (🟡) | 22 | 7 | -15 |
+| DB tables with UI representation | ~38 | ~42 | +4 |
+| DB tables with NO UI (🟡) | 7 | 8 | +1 (refined wildcards into specific gaps) |
 | UI elements with NO DB column (🔴) | 11 | 11 | unchanged |
+| 🟡 field-level entries in Student Detail | 35 | 20 | -15 |
+| 🟡 field-level entries in Maintenance | 27 | 20 | -7 |
+| 🟡 field-level entries in FIF Banner | 4 | 0 | -4 |
+| 🟡 field-level entries in Live Map | 3 | 3 | refined (specific fields vs wildcards) |
+| 🟡 field-level entries in School Schedule | 5 | 5 | refined (specific fields vs wildcards) |
 
 ---
 
